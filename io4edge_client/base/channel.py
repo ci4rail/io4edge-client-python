@@ -1,0 +1,6 @@
+import logging
+
+class Channel:
+    """
+    
+    """
