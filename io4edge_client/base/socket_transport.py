@@ -8,11 +8,18 @@ class SocketTransport:
         s.connect((host, port))
         self._socket = s
 
-    def write_msg(self, data: bytes) -> int:
+    def write(self, data: bytes) -> int:
+        """
+        Send the data as an io4edge message to the server
+        """
         hdr = struct.pack("<HL", 0xEDFE, len(data))
         return self._socket.sendall(hdr + data)
 
-    def read_msg(self) -> bytes:
+    def read(self) -> bytes:
+        """
+        Wait for next io4edge message from server. 
+        Return payload.
+        """
         hdr = self._rcv_all(6)
         if hdr[0:2] == b"\xfe\xed":
             len = struct.unpack("<L", hdr[2:6])[0]

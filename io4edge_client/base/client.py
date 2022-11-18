@@ -14,11 +14,20 @@ class Client:
         print(f"Connecting to {ip}:{port}")
         self._transport = SocketTransport(ip, port)
 
-    def write_msg(self, data: bytes) -> int:
-        pass
+    def write_msg(self, msg):
+        """
+        Marshall msg and write it to the server
+        """
+        data = msg.SerializeToString()
+        self._transport.write(data)
 
-    def read_msg(self) -> bytes:
-        pass
+    def read_msg(self, msg):
+        """
+        Wait for next message from server. Unmarshall it to msg.
+        Pass msg as a protobuf message type with the expected type.
+        """
+        data = self._transport.read()
+        msg.ParseFromString(data)
 
     @staticmethod
     def _net_address_split(addr: str):
