@@ -1,9 +1,12 @@
-import io4edge_client
+import io4edge_client.binaryiotypec as binio
 
 
 def main():
-    fb_client = io4edge_client.functionblock.Client("S101-IOU07-USB-EXT-1-binio._io4edge_binaryIoTypeC._tcp")
-    fb_client.Command()
+    binio_client = binio.client.Client(
+        "S101-IOU07-USB-EXT-1-binio._io4edge_binaryIoTypeC._tcp"
+    )
+    binio_client.set_output(1, True)
+
 
 if __name__ == "__main__":
     main()
