@@ -21,12 +21,13 @@ class Client:
         data = msg.SerializeToString()
         self._transport.write(data)
 
-    def read_msg(self, msg):
+    def read_msg(self, msg, timeout):
         """
         Wait for next message from server. Unmarshall it to msg.
         Pass msg as a protobuf message type with the expected type.
+        If timeout is not None, raise TimeoutError if no message is received within timeout seconds.
         """
-        data = self._transport.read()
+        data = self._transport.read(timeout)
         msg.ParseFromString(data)
 
     @staticmethod
@@ -71,4 +72,4 @@ class Client:
         return rv
 
     def close(self):
-        pass
+        self._transport.close()
