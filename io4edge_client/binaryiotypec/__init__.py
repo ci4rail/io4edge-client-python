@@ -1,1 +1,2 @@
-from .client import Client, ChannelConfig, WatchdogConfig  # noqa: F401
+from .client import Client  # noqa: F401
+import io4edge_client.api.binaryIoTypeC.python.binaryIoTypeC.v1alpha1.binaryIoTypeC_pb2 as Pb  # noqa: F401

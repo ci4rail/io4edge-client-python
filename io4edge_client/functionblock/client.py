@@ -9,14 +9,15 @@ class Client:
     def __init__(self, addr: str, command_timeout=5):
         self._client = BaseClient(addr)
         self._stream_queue_mutex = threading.Lock()
+        self._stream_queue_sema = threading.Semaphore(0)
         self._stream_queue = deque()
         self._cmd_event = threading.Event()
         self._cmd_mutex = threading.Lock()
         self._cmd_response = None
         self._cmd_timeout = command_timeout
+        self._read_thread_stop = False
         self._read_thread_id = threading.Thread(target=self._read_thread, daemon=True)
         self._read_thread_id.start()
-        self._read_thread_stop = False
 
     def upload_configuration(self, fs_cmd):
         fs_any = AnyPb.Any()
@@ -63,6 +64,23 @@ class Client:
         fb_res = self._command(fb_cmd)
         return fb_res.functionControl.functionSpecificFunctionControlGet
 
+    def start_stream(self, fs_cmd, fb_config: FbPb.Command):
+        fs_any = AnyPb.Any()
+        fs_any.Pack(fs_cmd)
+
+        fb_config.streamControlStart.functionSpecificStreamControlStart.CopyFrom(fs_any)
+        self._command(fb_config)
+
+    def stop_stream(self):
+        fb_cmd = FbPb.Command()
+        fb_cmd.streamControlStop = FbPb.StreamControlStop()
+        self._command(fb_cmd)
+
+    def read_stream(self, timeout=None):
+        self._stream_queue_sema.acquire(timeout=timeout)
+        with self._stream_queue_mutex:
+            return self._stream_queue.popleft()
+
     def _command(self, cmd: FbPb.Command):
         with self._cmd_mutex:
             self._cmd_event.clear()
@@ -96,6 +114,7 @@ class Client:
     def _feed_stream(self, stream_data):
         with self._stream_queue_mutex:
             self._stream_queue.append(stream_data)
+        self._stream_queue_sema.release()
 
     def close(self):
         self._read_thread_stop = True
