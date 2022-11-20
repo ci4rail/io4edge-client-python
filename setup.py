@@ -1,3 +1,4 @@
+# SPDX-License-Identifer: Apache-2.0
 from setuptools import setup, find_packages
 import os
 import re

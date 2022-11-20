@@ -1,3 +1,4 @@
+# SPDX-License-Identifer: Apache-2.0
 import google.protobuf.any_pb2 as AnyPb
 
 URL_PREFIX = "type.googleapis.com/"

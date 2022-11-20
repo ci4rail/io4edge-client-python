@@ -1,3 +1,4 @@
+# SPDX-License-Identifer: Apache-2.0
 from zeroconf import Zeroconf
 from .socket_transport import SocketTransport
 

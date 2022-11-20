@@ -1,3 +1,4 @@
+# SPDX-License-Identifer: Apache-2.0
 import threading
 from collections import deque
 from io4edge_client.base import Client as BaseClient

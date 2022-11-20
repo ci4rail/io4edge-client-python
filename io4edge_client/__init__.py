@@ -1,1 +1,1 @@
-import io4edge_client.base as base
+# SPDX-License-Identifer: Apache-2.0
