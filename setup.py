@@ -35,7 +35,7 @@ setup(
         "zeroconf",
     ],
     version=readVersion(),
-    description="A python library io4edge devices",
+    description="A python library for io4edge devices",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
     url="https://github.com/ci4rail/io4edge-client-python",
