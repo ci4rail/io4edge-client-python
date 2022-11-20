@@ -11,14 +11,35 @@ class Client:
         self._fb_client.upload_configuration(config)
 
     def download_configuration(self) -> Pb.ConfigurationGetResponse:
-        fs_cmd = Pb.ConfigurationGet()
-        return self._fb_client.download_configuration(fs_cmd)
+        fs_response = Pb.ConfigurationGetResponse()
+        self._fb_client.download_configuration(fs_response)
+        return fs_response
 
     def set_output(self, channel: int, state: bool):
         fs_cmd = Pb.FunctionControlSet()
         fs_cmd.single.channel = channel
         fs_cmd.single.state = state
         self._fb_client.function_control_set(fs_cmd)
+
+    def set_all_outputs(self, states: int, mask: int):
+        fs_cmd = Pb.FunctionControlSet()
+        fs_cmd.all.states = states
+        fs_cmd.all.mask = mask
+        self._fb_client.function_control_set(fs_cmd)
+
+    def input(self, channel: int):
+        fs_cmd = Pb.FunctionControlGet()
+        fs_cmd.single.channel = channel
+        fs_response = Pb.FunctionControlGetResponse()
+        self._fb_client.function_control_get(fs_cmd, fs_response)
+        return fs_response.single.state, fs_response.single.diag
+
+    def all_inputs(self):
+        fs_cmd = Pb.FunctionControlGet()
+        fs_cmd.all.CopyFrom(Pb.GetAll())
+        fs_response = Pb.FunctionControlGetResponse()
+        self._fb_client.function_control_get(fs_cmd, fs_response)
+        return fs_response.all
 
     def start_stream(
         self, config: Pb.StreamControlStart, fb_config: FbPb.StreamControl

@@ -29,7 +29,7 @@ class SocketTransport:
                 raise TimeoutError("timeout")
 
         hdr = self._rcv_all(6)
-        if hdr[0:2] == b"\xfe\xed":
+        if hdr[0:2] == b"\xFE\xED":
             len = struct.unpack("<L", hdr[2:6])[0]
             data = self._rcv_all(len)
             return data
@@ -45,5 +45,4 @@ class SocketTransport:
         return buf
 
     def close(self):
-        print("Closing socket")
         self._socket.close()

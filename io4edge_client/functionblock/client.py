@@ -1,6 +1,7 @@
 import threading
 from collections import deque
 from io4edge_client.base import Client as BaseClient
+from ..util.any import pb_any_unpack
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
 import google.protobuf.any_pb2 as AnyPb
 
@@ -33,14 +34,14 @@ class Client:
         fb_res = self._command(fb_cmd)
         return fb_res.Configuration.functionSpecificConfigurationSet
 
-    def download_configuration(self, fs_cmd):
+    def download_configuration(self, fs_cmd, fs_response):
         fs_any = AnyPb.Any()
         fs_any.Pack(fs_cmd)
 
         fb_cmd = FbPb.Command()
         fb_cmd.Configuration.functionSpecificConfigurationGet.CopyFrom(fs_any)
         fb_res = self._command(fb_cmd)
-        return fb_res.Configuration.functionSpecificConfigurationGet
+        pb_any_unpack(fb_res.Configuration.functionSpecificConfigurationGet, fs_response)
 
     def describe(self, fs_cmd):
         fs_any = AnyPb.Any()
@@ -60,14 +61,14 @@ class Client:
         fb_res = self._command(fb_cmd)
         return fb_res.functionControl.functionSpecificFunctionControlSet
 
-    def function_control_get(self, fs_cmd):
+    def function_control_get(self, fs_cmd, fs_response):
         fs_any = AnyPb.Any()
         fs_any.Pack(fs_cmd)
 
         fb_cmd = FbPb.Command()
         fb_cmd.functionControl.functionSpecificFunctionControlGet.CopyFrom(fs_any)
         fb_res = self._command(fb_cmd)
-        return fb_res.functionControl.functionSpecificFunctionControlGet
+        pb_any_unpack(fb_res.functionControl.functionSpecificFunctionControlGet, fs_response)
 
     def start_stream(self, fs_config, fb_config: FbPb.StreamControlStart):
         fs_any = AnyPb.Any()
@@ -81,18 +82,15 @@ class Client:
 
     def stop_stream(self):
         fb_cmd = FbPb.Command()
-        fb_cmd.streamControlStop = FbPb.StreamControlStop()
+        stop = FbPb.StreamControlStop()
+        fb_cmd.streamControl.stop.CopyFrom(stop)
         self._command(fb_cmd)
 
     def read_stream(self, timeout, stream_data):
         self._stream_queue_sema.acquire(timeout=timeout)
         with self._stream_queue_mutex:
             data = self._stream_queue.popleft()
-            fs_any = AnyPb.Any()
-            fs_any.CopyFrom(data.functionSpecificStreamData)
-            if not fs_any.type_url.startswith("type.googleapis.com/"):
-                fs_any.type_url = "type.googleapis.com/" + fs_any.type_url
-            fs_any.Unpack(stream_data)
+            pb_any_unpack(data.functionSpecificStreamData, stream_data)
             return data
 
     def _command(self, cmd: FbPb.Command):
@@ -116,7 +114,6 @@ class Client:
             return response
 
     def _read_thread(self):
-        print("Read thread started")
         while not self._read_thread_stop:
             msg = FbPb.Response()
             try:
@@ -129,7 +126,6 @@ class Client:
             else:
                 self._cmd_response = msg
                 self._cmd_event.set()
-        print("Read thread stopped")
 
     def _feed_stream(self, stream_data):
         with self._stream_queue_mutex:
