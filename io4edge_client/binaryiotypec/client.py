@@ -25,5 +25,13 @@ class Client:
     ):
         self._fb_client.start_stream(config, fb_config)
 
+    def stop_stream(self):
+        self._fb_client.stop_stream()
+
+    def read_stream(self, timeout=None):
+        stream_data = Pb.StreamData()
+        generic_stream_data = self._fb_client.read_stream(timeout, stream_data)
+        return generic_stream_data, stream_data
+
     def close(self):
         self._fb_client.close()

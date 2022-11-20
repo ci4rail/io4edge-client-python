@@ -23,6 +23,7 @@ print("M2 is", m2)
 
 fs_any2 = AnyPb.Any()
 fs_any2.CopyFrom(m2.Configuration.functionSpecificConfigurationSet)
+fs_any2.type_url = ""
 
 fs_msg2 = BinIoPb.ConfigurationSet()
 fs_any2.Unpack(fs_msg2)
