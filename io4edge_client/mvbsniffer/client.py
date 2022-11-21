@@ -11,7 +11,7 @@ class Client:
 
     def send_pattern(self, msg: str):
         fs_cmd = Pb.FunctionControlSet(GeneratorPattern=msg)
-        self._fb_client.function_control_set(fs_cmd)
+        self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
 
     def start_stream(
         self, config: Pb.StreamControlStart, fb_config: FbPb.StreamControl

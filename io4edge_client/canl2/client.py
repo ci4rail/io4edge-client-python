@@ -18,7 +18,7 @@ class Client:
 
     def send_frames(self, frames: list[Pb.SendFrames]):
         fs_cmd = Pb.FunctionControlSet(frame=frames)
-        self._fb_client.function_control_set(fs_cmd)
+        self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
 
     def ctrl_state(self):
         fs_cmd = Pb.FunctionControlGet()

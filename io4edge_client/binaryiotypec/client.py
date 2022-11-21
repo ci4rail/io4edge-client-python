@@ -13,20 +13,25 @@ class Client:
 
     def download_configuration(self) -> Pb.ConfigurationGetResponse:
         fs_response = Pb.ConfigurationGetResponse()
-        self._fb_client.download_configuration(fs_response)
+        self._fb_client.download_configuration(Pb.ConfigurationGet(), fs_response)
+        return fs_response
+
+    def describe(self):
+        fs_response = Pb.ConfigurationDescribeResponse()
+        self._fb_client.describe(Pb.ConfigurationDescribe(), fs_response)
         return fs_response
 
     def set_output(self, channel: int, state: bool):
         fs_cmd = Pb.FunctionControlSet()
         fs_cmd.single.channel = channel
         fs_cmd.single.state = state
-        self._fb_client.function_control_set(fs_cmd)
+        self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
 
     def set_all_outputs(self, states: int, mask: int):
         fs_cmd = Pb.FunctionControlSet()
         fs_cmd.all.states = states
         fs_cmd.all.mask = mask
-        self._fb_client.function_control_set(fs_cmd)
+        self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
 
     def input(self, channel: int):
         fs_cmd = Pb.FunctionControlGet()

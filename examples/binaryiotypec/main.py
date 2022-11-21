@@ -19,10 +19,10 @@ def main():
     config.outputWatchdogTimeout = 1000
     binio_client.upload_configuration(config)
 
-    # Crashed due to bug in IOU07
-    # config = binio_client.download_configuration()
-    # print("Downloaded config is", config)
+    config = binio_client.download_configuration()
+    print("Downloaded config is", config)
 
+    print("Description is", binio_client.describe())
     threading.Thread(target=stim_thread, daemon=True, args=(binio_client,)).start()
 
     binio_client.start_stream(

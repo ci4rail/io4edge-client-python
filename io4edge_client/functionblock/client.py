@@ -42,25 +42,31 @@ class Client:
         fb_cmd = FbPb.Command()
         fb_cmd.Configuration.functionSpecificConfigurationGet.CopyFrom(fs_any)
         fb_res = self._command(fb_cmd)
-        pb_any_unpack(fb_res.Configuration.functionSpecificConfigurationGet, fs_response)
+        pb_any_unpack(
+            fb_res.Configuration.functionSpecificConfigurationGet, fs_response
+        )
 
-    def describe(self, fs_cmd):
+    def describe(self, fs_cmd, fs_response):
         fs_any = AnyPb.Any()
         fs_any.Pack(fs_cmd)
 
         fb_cmd = FbPb.Command()
         fb_cmd.Configuration.functionSpecificConfigurationDescribe.CopyFrom(fs_any)
         fb_res = self._command(fb_cmd)
-        return fb_res.Configuration.functionSpecificConfigurationDescribe
+        pb_any_unpack(
+            fb_res.Configuration.functionSpecificConfigurationDescribe, fs_response
+        )
 
-    def function_control_set(self, fs_cmd):
+    def function_control_set(self, fs_cmd, fs_response):
         fs_any = AnyPb.Any()
         fs_any.Pack(fs_cmd)
 
         fb_cmd = FbPb.Command()
         fb_cmd.functionControl.functionSpecificFunctionControlSet.CopyFrom(fs_any)
         fb_res = self._command(fb_cmd)
-        return fb_res.functionControl.functionSpecificFunctionControlSet
+        pb_any_unpack(
+            fb_res.functionControl.functionSpecificFunctionControlSet, fs_response
+        )
 
     def function_control_get(self, fs_cmd, fs_response):
         fs_any = AnyPb.Any()
@@ -69,7 +75,9 @@ class Client:
         fb_cmd = FbPb.Command()
         fb_cmd.functionControl.functionSpecificFunctionControlGet.CopyFrom(fs_any)
         fb_res = self._command(fb_cmd)
-        pb_any_unpack(fb_res.functionControl.functionSpecificFunctionControlGet, fs_response)
+        pb_any_unpack(
+            fb_res.functionControl.functionSpecificFunctionControlGet, fs_response
+        )
 
     def start_stream(self, fs_config, fb_config: FbPb.StreamControlStart):
         fs_any = AnyPb.Any()
@@ -104,7 +112,9 @@ class Client:
 
             response = self._cmd_response
             if response.context.value != str(self._cmd_context):
-                raise RuntimeError(f"Command context mismatch. Got {response.context.value}, expected {self._cmd_context}")
+                raise RuntimeError(
+                    f"Command context mismatch. Got {response.context.value}, expected {self._cmd_context}"
+                )
 
             self._cmd_context += 1
 
