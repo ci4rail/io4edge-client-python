@@ -20,6 +20,8 @@ class Client:
         Send a pattern to the mvbSniffer's internal mvb frame generator.
         See https://github.com/ci4rail/io4edge-client-go/blob/main/mvbsniffer/generator.go how to create the pattern.
         @param msg: pattern to send
+        @raises RuntimeError: if the command fails
+        @raises TimeoutError: if the command times out
         """
         fs_cmd = Pb.FunctionControlSet(GeneratorPattern=msg)
         self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
