@@ -4,13 +4,13 @@ from .socket_transport import SocketTransport
 
 
 class Client:
-    def __init__(self, addr: str):
+    def __init__(self, service: str, addr: str):
         # detect if addr is a service name or an IP address
         try:
             ip, port = self._net_address_split(addr)
         except ValueError:
             # addr may be a service name
-            ip, port = self._find_mdns(addr)
+            ip, port = self._find_mdns(addr + "." + service)
 
         print(f"Connecting to {ip}:{port}")
         self._transport = SocketTransport(ip, port)

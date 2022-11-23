@@ -11,11 +11,12 @@ class Client:
     """
     io4edge functionblock client.
     @param addr: address of io4edge function block (mdns name or "ip:port" address)
+    @param service: service name of io4edge function block
     @param command_timeout: timeout for commands in seconds
     """
 
-    def __init__(self, addr: str, command_timeout=5):
-        self._client = BaseClient(addr)
+    def __init__(self, addr: str, service: str, command_timeout=5):
+        self._client = BaseClient(addr, service)
         self._stream_queue_mutex = (
             threading.Lock()
         )  # Protects _stream_queue from concurrent access

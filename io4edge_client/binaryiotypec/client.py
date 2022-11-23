@@ -5,8 +5,8 @@ import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_function
 
 
 class Client:
-    def __init__(self, addr: str):
-        self._fb_client = FbClient(addr + "._io4edge_binaryIoTypeC._tcp")
+    def __init__(self, addr: str, command_timeout=5):
+        self._fb_client = FbClient(addr, "._io4edge_binaryIoTypeC._tcp", command_timeout)
 
     def upload_configuration(self, config: Pb.ConfigurationSet):
         self._fb_client.upload_configuration(config)

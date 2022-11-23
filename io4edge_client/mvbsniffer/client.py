@@ -13,7 +13,7 @@ class Client:
     """
 
     def __init__(self, addr: str, command_timeout=5):
-        self._fb_client = FbClient(addr + "._io4edge_mvbSniffer._tcp", command_timeout)
+        self._fb_client = FbClient(addr, "_io4edge_mvbSniffer._tcp", command_timeout)
 
     def send_pattern(self, msg: str):
         """
