@@ -50,7 +50,8 @@ class Client:
         """
         Read the next message from the stream.
         @param timeout: timeout in seconds
-        @return: mvbSniffer TelegramCollection, functionblock generic stream data (deliveryTimestampUs, sequence)
+        @return: functionblock generic stream data (deliveryTimestampUs, sequence), mvbSniffer TelegramCollection
+        @raises TimeoutError: if no data is available within the timeout
         """
         stream_data = TelegramPb.TelegramCollection()
         generic_stream_data = self._fb_client.read_stream(timeout, stream_data)

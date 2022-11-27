@@ -153,6 +153,7 @@ class Client:
         @param timeout: timeout in seconds
         @param stream_data: protobuf message that is filled with the stream data
         @return functionblock stream meta data (deliveryTimestampUs, sequence)
+        @raises TimeoutError: if no data is available within the timeout
         """
         self._stream_queue_sema.acquire(timeout=timeout)
         with self._stream_queue_mutex:
