@@ -13,7 +13,7 @@ class Client:
     """
 
     def __init__(self, addr: str, command_timeout=5):
-        self._fb_client = FbClient(addr, "_io4edge_mvbSniffer._tcp", command_timeout)
+        self._fb_client = FbClient("_io4edge_mvbSniffer._tcp", addr, command_timeout)
 
     def send_pattern(self, msg: str):
         """
@@ -23,7 +23,7 @@ class Client:
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
-        fs_cmd = Pb.FunctionControlSet(GeneratorPattern=msg)
+        fs_cmd = Pb.FunctionControlSet(generator_pattern=msg)
         self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
 
     def start_stream(
