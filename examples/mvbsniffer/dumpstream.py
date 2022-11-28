@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # SPDX-License-Identifer: Apache-2.0
 import io4edge_client.mvbsniffer as mvb
 import io4edge_client.functionblock as fb

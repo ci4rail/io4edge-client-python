@@ -178,8 +178,9 @@ class Client:
             self._cmd_context += 1
 
             if response.status != FbPb.Status.OK:
+                status_str = FbPb.Status.Name(response.status)
                 raise RuntimeError(
-                    f"Command failed: {response.status}: {response.error}"
+                    f"Command failed: {status_str}: {response.error}"
                 )
             return response
 
