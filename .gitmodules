@@ -1,0 +1,3 @@
+[submodule "io4edge_client/api"]
+	path = io4edge_client/api
+	url = https://github.com/ci4rail/io4edge_api.git
