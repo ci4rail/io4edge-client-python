@@ -13,8 +13,9 @@ def read(fname):
 
 def readVersion():
     txt = read("io4edge_client/version.py")
-    ver = re.findall(r"([0-9]+)", txt)
-    print("ver=%s" % ver)
+    ver = re.findall(r"([0-9]+), ([0-9]+), ([0-9]+)", txt)
+    ver = ver[0]
+    print("ver=%s" % ver.__str__())
     return ver[0] + "." + ver[1] + "." + ver[2]
 
 
