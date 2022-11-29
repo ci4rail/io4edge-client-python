@@ -34,6 +34,9 @@ def main():
 
     if args.gen:
         mvb_client.send_pattern(TEST_PATTERN)
+    else:
+        # ensure we use the external input in case the internal generator has been selected before
+        mvb_client.send_pattern("2")
 
     mvb_client.start_stream(
         stream_start,
