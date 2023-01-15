@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifer: Apache-2.0
-import io4edge_client.binaryiotypec as binio
+import io4edge_client.binaryiotypea as binio
 import io4edge_client.functionblock as fb
 import argparse
 import threading
@@ -8,7 +8,7 @@ import time
 
 
 def main():
-    parser = argparse.ArgumentParser(description="demo for binary i/o type c client")
+    parser = argparse.ArgumentParser(description="demo for binary i/o type A client")
     parser.add_argument(
         "addr", help="MDNS address or IP:Port of the function block", type=str
     )
@@ -20,29 +20,25 @@ def main():
     n_channels = binio_client.describe().numberOfChannels
     print("Number of channels in function block", n_channels)
 
-    n_outputs = int(n_channels / 2)
+    all_pins_mask = (1 << n_channels) - 1
 
-    config = binio.Pb.ConfigurationSet()
-    for channel in range(n_outputs):
-        config.channelConfig.add(
-            channel=channel,
-            mode=binio.Pb.ChannelMode.BINARYIOTYPEC_OUTPUT_PUSH_PULL,
-            initialValue=False,
-        )
-    config.outputWatchdogMask = (1 << n_outputs) - 1
-    config.outputWatchdogTimeout = 1000
+    # configure the function block
+    config = binio.Pb.ConfigurationSet(outputFrittingMask=all_pins_mask, 
+                                       outputWatchdogMask=all_pins_mask,
+                                       outputWatchdogTimeout=1000)
     binio_client.upload_configuration(config)
 
+    # read back the configuration
     config = binio_client.download_configuration()
     print("Downloaded config is", config)
 
     # Start a thread that will stimulate the outputs
     threading.Thread(
-        target=stim_thread, daemon=True, args=(binio_client, n_outputs)
+        target=stim_thread, daemon=True, args=(binio_client, n_channels)
     ).start()
 
     binio_client.start_stream(
-        binio.Pb.StreamControlStart(channelFilterMask=0xFFFF),
+        binio.Pb.StreamControlStart(channelFilterMask=all_pins_mask),
         fb.Pb.StreamControlStart(
             bucketSamples=25,
             keepaliveInterval=1000,
@@ -53,13 +49,13 @@ def main():
 
     # demonstrate how to read single or all channels
     for _ in range(10):
-        state, diag = binio_client.input(0)
-        print("Reading Ch0 state=%d diag=0x%x" % (state, diag))
+        state = binio_client.input(0)
+        print("Reading Ch0 state=%d diag=0x%x" % (state))
 
         all = binio_client.all_inputs()
         for channel in range(n_channels):
-            state = 1 if all.inputs & (1 << channel) else 0
-            print("  Ch%d state=%d diag=0x%x" % (channel, state, all.diag[channel]))
+            state = 1 if all & (1 << channel) else 0
+            print("  Ch%d state=%d" % (channel, state))
 
         time.sleep(0.5)
 
@@ -70,7 +66,7 @@ def main():
             f"Received stream data {generic_stream_data.deliveryTimestampUs}, {generic_stream_data.sequence}"
         )
         for sample in stream_data.samples:
-            print(" Inputs=0x%x Valid=0x%x" % (sample.values, sample.value_valid))
+            print(" Channel %d -> %d" % (sample.channel, sample.value))
 
     binio_client.stop_stream()
     binio_client.close()
