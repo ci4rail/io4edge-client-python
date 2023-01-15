@@ -23,7 +23,7 @@ def main():
     all_pins_mask = (1 << n_channels) - 1
 
     # configure the function block
-    config = binio.Pb.ConfigurationSet(outputFrittingMask=all_pins_mask, 
+    config = binio.Pb.ConfigurationSet(outputFrittingMask=all_pins_mask,
                                        outputWatchdogMask=all_pins_mask,
                                        outputWatchdogTimeout=1000)
     binio_client.upload_configuration(config)
