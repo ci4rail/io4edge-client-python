@@ -15,5 +15,5 @@ python3 main.py <function-block-address>
 ```
 e.g.
 ```
-python3 main.py S101-IOU07-USB-EXT-1-binio
+python3 main.py S101-IOU01-USB-EXT-1-binaryIoTypeA
 ```

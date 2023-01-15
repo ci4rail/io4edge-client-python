@@ -10,9 +10,9 @@ On IOU01 or MIO01, supply a voltage between -10V..+10V to the analog input chann
 Run the demo with:
 
 ```
-python3 main.py <function-block-address>
+python3 main.py [--sr <sample-rate>] <function-block-address>
 ```
 e.g.
 ```
-python3 main.py S101-IOU07-USB-EXT-1-binio
+python3 main.py --sr 2000 S101-IOU01-USB-EXT-1-analogInTypeA1
 ```
