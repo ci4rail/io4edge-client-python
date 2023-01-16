@@ -100,18 +100,19 @@ class Client:
         self._fb_client.function_control_get(fs_cmd, fs_response)
         return fs_response.single.state
 
-    def all_inputs(self) -> int:
+    def all_inputs(self, mask: int) -> int:
         """
         Get the state of all channels, regardless whether they are configured as input or output.
         Each bit in the returned state corresponds to one channel, bit0 being channel 0.
         The bit is "true" if the input level is above switching threshold, "false" otherwise.
 
+        @param: mask to define which channels are read. 0 means mask, 1 means unmask, LSB is Channel0
         @return: state of all inputs
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
         fs_cmd = Pb.FunctionControlGet()
-        fs_cmd.all.CopyFrom(Pb.GetAll())
+        fs_cmd.all.mask = mask
         fs_response = Pb.FunctionControlGetResponse()
         self._fb_client.function_control_get(fs_cmd, fs_response)
         return fs_response.all.inputs

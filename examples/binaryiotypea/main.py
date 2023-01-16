@@ -48,16 +48,16 @@ def main():
     )
 
     # demonstrate how to read single or all channels
-    for _ in range(10):
+    for _ in range(50):
         state = binio_client.input(0)
-        print("Reading Ch0 state=%d diag=0x%x" % (state))
+        print("Reading Ch0 state=%d" % (state))
 
-        all = binio_client.all_inputs()
+        all = binio_client.all_inputs(all_pins_mask)
         for channel in range(n_channels):
             state = 1 if all & (1 << channel) else 0
             print("  Ch%d state=%d" % (channel, state))
 
-        time.sleep(0.5)
+        time.sleep(0.1)
 
     # demonstrate how to read stream
     for _ in range(10):
