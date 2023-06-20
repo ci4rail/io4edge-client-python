@@ -55,7 +55,7 @@ class Client:
         """
         fs_cmd = Pb.FunctionControlSet()
         fs_cmd.single.channel = channel
-        fs_cmd.single.state = not state
+        fs_cmd.single.state = state
         self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
 
     def set_all_outputs(self, states: int, mask: int):
