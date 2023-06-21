@@ -14,26 +14,6 @@ class Client:
     def __init__(self, addr: str, command_timeout=5):
         self._fb_client = FbClient("_io4edge_binaryIoTypeB._tcp", addr, command_timeout)
 
-    def upload_configuration(self, config: Pb.ConfigurationSet):
-        """
-        Upload the configuration to the binaryIoTypeB functionblock.
-        @param config: configuration to upload
-        @raises RuntimeError: if the command fails
-        @raises TimeoutError: if the command times out
-        """
-        self._fb_client.upload_configuration(config)
-
-    def download_configuration(self) -> Pb.ConfigurationGetResponse:
-        """
-        Download the configuration from the binaryIoTypeB functionblock.
-        @return: actual configuration
-        @raises RuntimeError: if the command fails
-        @raises TimeoutError: if the command times out
-        """
-        fs_response = Pb.ConfigurationGetResponse()
-        self._fb_client.download_configuration(Pb.ConfigurationGet(), fs_response)
-        return fs_response
-
     def describe(self) -> Pb.ConfigurationDescribeResponse:
         """
         Get the description from the binaryIoTypeB functionblock.
@@ -85,69 +65,7 @@ class Client:
         fs_cmd.exit_error.CopyFrom(Pb.SetExitError())
         self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
 
-    def input(self, channel: int) -> bool:
-        """
-        Get the state of a single channel, regardless whether its configured as input or output)
-        State "true" is returned if the input level is above switching threshold, "false" otherwise.
-        @param channel: channel number
-        @return: state of the input
-        @raises RuntimeError: if the command fails
-        @raises TimeoutError: if the command times out
-        """
-        fs_cmd = Pb.FunctionControlGet()
-        fs_cmd.single.channel = channel
-        fs_response = Pb.FunctionControlGetResponse()
-        self._fb_client.function_control_get(fs_cmd, fs_response)
-        return fs_response.single.state
-
-    def all_inputs(self, mask: int) -> int:
-        """
-        Get the state of all channels, regardless whether they are configured as input or output.
-        Each bit in the returned state corresponds to one channel, bit0 being channel 0.
-        The bit is "true" if the input level is above switching threshold, "false" otherwise.
-
-        @param: mask to define which channels are read. 0 means mask, 1 means unmask, LSB is Channel0
-        @return: state of all inputs
-        @raises RuntimeError: if the command fails
-        @raises TimeoutError: if the command times out
-        """
-        fs_cmd = Pb.FunctionControlGet()
-        fs_cmd.all.mask = mask
-        fs_response = Pb.FunctionControlGetResponse()
-        self._fb_client.function_control_get(fs_cmd, fs_response)
-        return fs_response.all.inputs
-
-    def start_stream(
-        self, config: Pb.StreamControlStart, fb_config: FbPb.StreamControl
-    ):
-        """
-        Start streaming of transitions.
-        @param config: filter configuration of the stream
-        @param fb_config: functionblock generic configuration of the stream
-        @raises RuntimeError: if the command fails
-        @raises TimeoutError: if the command times out
-        """
-        self._fb_client.start_stream(config, fb_config)
-
-    def stop_stream(self):
-        """
-        Stop streaming of transitions.
-        @raises RuntimeError: if the command fails
-        @raises TimeoutError: if the command times out
-        """
-        self._fb_client.stop_stream()
-
-    def read_stream(self, timeout=None):
-        """
-        Read the next message from the stream.
-        @param timeout: timeout in seconds
-        @return: functionblock generic stream data (deliveryTimestampUs, sequence), binaryIoTypeB specific stream data
-        @raises TimeoutError: if no data is available within the timeout
-        """
-        stream_data = Pb.StreamData()
-        generic_stream_data = self._fb_client.read_stream(timeout, stream_data)
-        return generic_stream_data, stream_data
-
+    
     def close(self):
         """
         Close the connection to the function block, terminate read thread.

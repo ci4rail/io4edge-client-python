@@ -1,12 +1,12 @@
-# binaryIoTypeA Examples
+# binaryIoTypeB Examples
 
 ## main.py
 
-Demonstrates most functions of the binaryIoTypeA client.
+Demonstrates most functions of the binaryIoTypeB client.
 
-Each channel's output is read back on the same channel's input. So you only need to supply all channel groups with supply voltage.
+Each channel output is controlled separetly. A load has to be connected to the output pin, which is supplied by 24V.
 
-The outputs are stimulated by a thread to force transitions on the inputs.
+The Common Ground pin is a common ground for both output pins.
 
 Run the demo with:
 
