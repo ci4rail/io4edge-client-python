@@ -8,10 +8,10 @@ This library provides support for the following function blocks within io4edge d
 * Binary IO TypeA - IOU01, MIO01
 * CAN Layer2 - IOU03, MIO03, IOU04, MIO04, IOU06
 * MVB Sniffer - IOU03, MIO03
+* Binary IO TypeB - IOU06
 * Binary IO TypeC - IOU07
 
 Currently not supported, but will follow:
-* Binary IO TypeB - IOU06
 * Motion Sensor - CPU01UC
 
 Not planned: Support for io4edge management functions, such as firmware update. Please use io4edge-client-go for this.

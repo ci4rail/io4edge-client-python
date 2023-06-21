@@ -51,21 +51,6 @@ class Client:
         fs_cmd.all.mask = mask
         self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
 
-    def exit_error_state(self):
-        """
-        Try to recover the binary output controller from error state.
-        The binary output controller enters error state when there is an overurrent condition for a long time.
-        In the error state, no outputs can be set; inputs can still be read.
-        This call tells the binary output controller to try again.
-        This call does however not wait if the recovery was successful or not.
-        @raises RuntimeError: if the command fails
-        @raises TimeoutError: if the command times out
-        """
-        fs_cmd = Pb.FunctionControlSet()
-        fs_cmd.exit_error.CopyFrom(Pb.SetExitError())
-        self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
-
-    
     def close(self):
         """
         Close the connection to the function block, terminate read thread.
