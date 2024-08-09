@@ -20,7 +20,7 @@ class Client:
         Marshall msg and write it to the server
         """
         data = msg.SerializeToString()
-        self._transport.write(bytes(data))
+        self._transport.write(data)
 
     def read_msg(self, msg, timeout):
         """
@@ -29,7 +29,7 @@ class Client:
         If timeout is not None, raise TimeoutError if no message is received within timeout seconds.
         """
         data = self._transport.read(timeout)
-        msg.ParseFromString(data)
+        msg.ParseFromString(bytes(data))
 
     @staticmethod
     def _net_address_split(addr: str):
