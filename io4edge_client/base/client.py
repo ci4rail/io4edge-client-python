@@ -20,7 +20,7 @@ class Client:
         Marshall msg and write it to the server
         """
         data = msg.SerializeToString()
-        self._transport.write(data)
+        self._transport.write(bytes(data))
 
     def read_msg(self, msg, timeout):
         """
