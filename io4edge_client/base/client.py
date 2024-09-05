@@ -29,7 +29,7 @@ class Client:
         If timeout is not None, raise TimeoutError if no message is received within timeout seconds.
         """
         data = self._transport.read(timeout)
-        msg.ParseFromString(data)
+        msg.ParseFromString(bytes(data))
 
     @staticmethod
     def _net_address_split(addr: str):

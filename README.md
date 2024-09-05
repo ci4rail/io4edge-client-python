@@ -27,8 +27,26 @@ pip3 install io4edge_client
 
 See [examples in github repo](https://github.com/ci4rail/io4edge-client-python) for usage examples.
 
+
+### Running in Docker
+
+To run the examples in a docker container, you can use the provided `Dockerfile` in `examples/docker` directory.
+
+In the Dockerfile, Replace `dumpstream.py` script with your python application path.
+
+To build the docker image, run the following command on your host to build it for your target platform, in this case the target platform  `linux/arm64`:
+
+```bash
+docker buildx build --platform linux/arm64  -f examples/docker/Dockerfile . --push -t <your-docker-image-name>:<version>
+```
+
+On your target platform, run the container in the host network, so that you can use the service names of the io4edge devices:
+```
+docker run --network=host <your-docker-image-name>:<version> <parameters-to-your-python-script>
+```
+
 ## Copyright
 
-Copyright © 2021-2023 Ci4Rail GmbH <engineering@ci4rail.com>
+Copyright © 2021-2024 Ci4Rail GmbH <engineering@ci4rail.com>
 
 io4edge_client_python package is released under Apache 2.0 License, see [LICENSE](LICENSE) for details.
