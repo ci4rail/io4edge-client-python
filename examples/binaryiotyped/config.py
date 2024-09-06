@@ -3,12 +3,9 @@
 import io4edge_client.binaryiotyped as binio
 import io4edge_client.functionblock as fb
 import argparse
-import threading
-import time
-
 
 def main():
-    parser = argparse.ArgumentParser(description="config demo for binary i/o type c client")
+    parser = argparse.ArgumentParser(description="config binary i/o type D client")
     parser.add_argument(
         "addr", help="MDNS address or IP:Port of the function block", type=str
     )
@@ -49,8 +46,8 @@ def main():
                     channel=args.channel,
                     mode=args.mode,
                     initialValue=args.initactive,
-                    retryTimeout=args.retrytout,
-                    watchdogTimeout=args.wdtout,
+                    #retryTimeoutMs=args.retrytout, TODO: uncomment when implemented
+                    watchdogTimeoutMs=args.wdtout,
                 )
             ]
         )
