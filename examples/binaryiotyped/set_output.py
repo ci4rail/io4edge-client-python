@@ -22,3 +22,6 @@ def main():
 
     binio_client.set_output(args.channel, args.state)
     print(f"Output {args.channel} set to {args.state}")
+
+if __name__ == "__main__":
+    main()

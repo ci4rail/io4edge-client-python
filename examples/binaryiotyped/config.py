@@ -46,7 +46,7 @@ def main():
                     channel=args.channel,
                     mode=args.mode,
                     initialValue=args.initactive,
-                    #retryTimeoutMs=args.retrytout, TODO: uncomment when implemented
+                    overloadRecoveryTimeoutMs=args.retrytout,
                     watchdogTimeoutMs=args.wdtout,
                 )
             ]
