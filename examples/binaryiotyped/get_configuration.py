@@ -14,14 +14,16 @@ def main():
 
     config = binio_client.download_configuration()
     print("Downloaded config is :")
-    print(config)
-    # for c in config :
-    #     print("Channel:", c.channel)
-    #     print("Mode:", c.mode)
-    #     print("Current Value:", c.initialValue)
-    #     print("Overload Recovery Timeout ms:", c.overloadRecoveryTimeoutMs)
-    #     print("Watchdog Timeout ms:", c.watchdogTimeoutMs)
-    #     print("fritting Enable:", c.frittingEnable)
+    print(len(config.channelConfig))
+    for i in range(len(config.channelConfig)):
+        print(
+            f"Channel                      : {config.channelConfig[i].channel}\n"
+            f"Mode                         : {config.channelConfig[i].mode}\n"
+            f"Current Value                : {config.channelConfig[i].initialValue}\n"
+            f"Overload Recovery Timeout ms : {config.channelConfig[i].overloadRecoveryTimeoutMs}\n"
+            f"Watchdog Timeout ms          : {config.channelConfig[i].watchdogTimeoutMs}\n"
+            f"Fritting Enable              : {config.channelConfig[i].frittingEnable}\n"
+        )
 
 if __name__ == "__main__":
     main()
