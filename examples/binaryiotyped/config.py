@@ -27,7 +27,7 @@ def main():
         "--retrytout",
         help="Retry timeout in ms (0=default)",
         type=int,
-        default=0,
+        default=50,
     )
     parser.add_argument(
         "--wdtout",
