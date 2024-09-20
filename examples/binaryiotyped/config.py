@@ -27,7 +27,7 @@ def main():
         "--retrytout",
         help="Retry timeout in ms (0=default)",
         type=int,
-        default=0,
+        default=50,
     )
     parser.add_argument(
         "--wdtout",
@@ -46,7 +46,7 @@ def main():
                     channel=args.channel,
                     mode=args.mode,
                     initialValue=args.initactive,
-                    #retryTimeoutMs=args.retrytout, TODO: uncomment when implemented
+                    overloadRecoveryTimeoutMs=args.retrytout,
                     watchdogTimeoutMs=args.wdtout,
                 )
             ]
