@@ -17,7 +17,7 @@ def main():
     args = parser.parse_args()
 
     binio_client = binio.Client(args.addr)
-   
+
 
     # determine number of channels
     all_pins_mask = (1 << 2) - 1
