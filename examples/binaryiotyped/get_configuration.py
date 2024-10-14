@@ -1,5 +1,6 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifer: Apache-2.0
 import io4edge_client.binaryiotyped as binio
-import io4edge_client.functionblock as fb
 import argparse
 
 def main():
@@ -14,11 +15,10 @@ def main():
 
     config = binio_client.download_configuration()
     print("Downloaded config is :")
-    print(len(config.channelConfig))
     for i in range(len(config.channelConfig)):
         print(
             f"Channel                      : {config.channelConfig[i].channel}\n"
-            f"Mode                         : {config.channelConfig[i].mode}\n"
+            f"Mode                         : {binio.Pb._CHANNELMODE.values_by_number[config.channelConfig[i].mode].name}\n"
             f"Current Value                : {config.channelConfig[i].initialValue}\n"
             f"Overload Recovery Timeout ms : {config.channelConfig[i].overloadRecoveryTimeoutMs}\n"
             f"Watchdog Timeout ms          : {config.channelConfig[i].watchdogTimeoutMs}\n"

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifer: Apache-2.0
 import io4edge_client.binaryiotyped as binio
-import io4edge_client.functionblock as fb
 import argparse
 
 def main():
@@ -14,4 +13,9 @@ def main():
     binio_client = binio.Client(args.addr)
 
     res = binio_client.get_channels()
-    print(res)
+    for i in range(len(res.diag)):
+        input = res.inputs & (1 << i)
+        print(f"Channel {i}: value={input} diag={res.diag[i]}")
+
+if __name__ == "__main__":
+    main()
