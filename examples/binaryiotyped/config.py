@@ -35,6 +35,11 @@ def main():
         type=int,
         default=0,
     )
+    parser.add_argument(
+        "--nofritting",
+        help="Disable fritting current (only used for input channels)",
+        action="store_true",
+    )
     args = parser.parse_args()
 
     binio_client = binio.Client(args.addr)
@@ -48,6 +53,7 @@ def main():
                     initialValue=args.initactive,
                     overloadRecoveryTimeoutMs=args.retrytout,
                     watchdogTimeoutMs=args.wdtout,
+                    frittingEnable=not args.nofritting,
                 )
             ]
         )
