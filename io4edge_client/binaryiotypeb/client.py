@@ -51,6 +51,32 @@ class Client:
         fs_cmd.all.mask = mask
         self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
 
+    def get_input(self, channel: int) -> bool:
+        """
+        Get the state of a single input.
+        @param channel: channel number
+        @return: state of the input
+        @raises RuntimeError: if the command fails
+        @raises TimeoutError: if the command times out
+        """
+        fs_cmd = Pb.FunctionControlGet()
+        fs_cmd.single.channel = channel
+        fs_response = Pb.FunctionControlGetResponse()
+        self._fb_client.function_control_get(fs_cmd, fs_response)
+        return fs_response.single.state
+    
+    def get_all_inputs(self) -> int:
+        """
+        Get the state of all inputs.
+        @return: binary coded map of inputs. 0 means switch off, 1 means switch on, LSB is Channel0
+        @raises RuntimeError: if the command fails
+        @raises TimeoutError: if the command times out
+        """
+        fs_cmd = Pb.FunctionControlGet()
+        fs_response = Pb.FunctionControlGetResponse()
+        self._fb_client.function_control_get(fs_cmd, fs_response)
+        return fs_response.all.values
+
     def close(self):
         """
         Close the connection to the function block, terminate read thread.
