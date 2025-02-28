@@ -83,3 +83,34 @@ class Client:
         After calling this method, the object is no longer usable.
         """
         self._fb_client.close()
+
+    def start_stream(
+        self, config: Pb.StreamControlStart, fb_config: FbPb.StreamControl
+    ):
+        """
+        Start streaming of transitions.
+        @param config: filter configuration of the stream
+        @param fb_config: functionblock generic configuration of the stream
+        @raises RuntimeError: if the command fails
+        @raises TimeoutError: if the command times out
+        """
+        self._fb_client.start_stream(config, fb_config)
+
+    def stop_stream(self):
+        """
+        Stop streaming of transitions.
+        @raises RuntimeError: if the command fails
+        @raises TimeoutError: if the command times out
+        """
+        self._fb_client.stop_stream()
+
+    def read_stream(self, timeout=None):
+        """
+        Read the next message from the stream.
+        @param timeout: timeout in seconds
+        @return: functionblock generic stream data (deliveryTimestampUs, sequence), binaryIoTypeC specific stream data
+        @raises TimeoutError: if no data is available within the timeout
+        """
+        stream_data = Pb.StreamData()
+        generic_stream_data = self._fb_client.read_stream(timeout, stream_data)
+        return generic_stream_data, stream_data

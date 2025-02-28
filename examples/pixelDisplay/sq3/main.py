@@ -24,31 +24,31 @@ def main():
     img = Image.open("../test.jpg")
     pix = img.load()
 
-    # Set pixel area and set 16 lines at a time
-    for i in range(0, 320, 16):
+    # Set pixel area and set 20 lines at a time
+    for i in range(0, 320, 20):
         pix_area = []
-        for k in range (0, 16):
+        for k in range (0, 20):
             for j in range(0, 240):
                 pix_area.append(pix[j, i+k])
         pixdisp_client.set_pixel_area(0, i, 239, pix_area)
 
     while True:
         # get input button up state
-        if(binio_client.get_input(0) == False):
+        if(binio_client.get_input(0) == True):
             print("Button up pressed")
-            for i in range(0, 320, 16):
+            for i in range(0, 320, 20):
                 pix_area = []
-                for k in range (0, 16):
+                for k in range (0, 20):
                     for j in range(0, 240):
                         pix_area.append(pix[j, i+k])
                 pixdisp_client.set_pixel_area(0, i, 239, pix_area)
 
         # get input button down state
-        if(binio_client.get_input(1) == False):
+        if(binio_client.get_input(1) == True):
             print("Button down pressed")
-            for i in range(319, -1, -16):
+            for i in range(319, -1, -20):
                 pix_area = []
-                for k in range (0, 16):
+                for k in range (0, 20):
                     for j in range(239, -1, -1):
                         pix_area.append(pix[j, i-k])
                 pixdisp_client.set_pixel_area(0, 319-i, 239, pix_area)
