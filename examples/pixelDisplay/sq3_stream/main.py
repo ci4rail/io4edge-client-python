@@ -5,10 +5,6 @@ import io4edge_client.pixelDisplay as pixdisp
 import io4edge_client.binaryiotypeb as binio
 import io4edge_client.functionblock as fb
 import argparse
-import threading
-import time
-
-
 
 def main():
     parser = argparse.ArgumentParser(description="Example for the usage of the pixel display and buttons on the sq3")
