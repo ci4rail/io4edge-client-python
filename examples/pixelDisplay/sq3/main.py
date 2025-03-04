@@ -11,14 +11,14 @@ import time
 
 
 def main():
-    parser = argparse.ArgumentParser(description="todo")
+    parser = argparse.ArgumentParser(description="Example for the usage of the pixel display and buttons on the sq3")
     parser.add_argument(
         "addr", help="MDNS address or IP:Port of the function block", type=str
     )
     args = parser.parse_args()
 
-    pixdisp_client = pixdisp.Client(args.addr + ":10001")
-    binio_client = binio.Client(args.addr + ":10002")
+    pixdisp_client = pixdisp.Client(args.addr + "-display")
+    binio_client = binio.Client(args.addr + "-buttons")
 
     # parse pixel data from jpeg file
     img = Image.open("../test.jpg")

@@ -11,14 +11,14 @@ import time
 
 
 def main():
-    parser = argparse.ArgumentParser(description="todo")
+    parser = argparse.ArgumentParser(description="Example for the usage of the pixel display and buttons on the sq3")
     parser.add_argument(
         "addr", help="MDNS address or IP:Port of the function block", type=str
     )
     args = parser.parse_args()
 
-    pixdisp_client = pixdisp.Client(args.addr + ":10001")
-    binio_client = binio.Client(args.addr + ":10002")
+    pixdisp_client = pixdisp.Client(args.addr + "-display")
+    binio_client = binio.Client(args.addr + "-buttons")
 
     # parse pixel data from jpeg file
     img = Image.open("../test.jpg")
@@ -34,16 +34,29 @@ def main():
 
     # start stream
     binio_client.start_stream(
-        binio.Pb.StreamControlStart(),
+        binio.Pb.StreamControlStart(
+            subscribeChannel = (
+                binio.Pb.SubscribeChannel(
+                    channel=0,
+                    subscriptionType=binio.Pb.SubscriptionType.BINARYIOTYPEB_ON_RISING_EDGE,
+                ),
+                binio.Pb.SubscribeChannel(
+                    channel=1,
+                    subscriptionType=binio.Pb.SubscriptionType.BINARYIOTYPEB_ON_RISING_EDGE,
+                ),
+            )
+        ),
         fb.Pb.StreamControlStart(
-            bucketSamples=100,
-            keepaliveInterval=1000,
-            bufferedSamples=200,
+            bucketSamples=1,
+            keepaliveInterval=10000,
+            bufferedSamples=2,
             low_latency_mode=True,
         ),)
 
     while True:
-        stream_data = binio_client.read_stream()[1]
+        generic_stream_data, stream_data = binio_client.read_stream()
+        print ("Got samples: ", generic_stream_data)
+
         for sample in stream_data.samples:
             if sample.inputs & 0x01:
                 print("Button up pressed")

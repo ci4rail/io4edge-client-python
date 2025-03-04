@@ -8,6 +8,11 @@ Loop Sequence:
 * Switch display off
 * Display test picture up side down
 
+## display partial image
+
+Example to use pixelDisplay interface to update parts of the display.
+The text on the display switches from 1 to 2 and back.
+
 ## sq3
 
 Specific example with a sq3:

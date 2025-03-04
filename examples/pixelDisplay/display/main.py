@@ -11,13 +11,13 @@ import time
 
 
 def main():
-    parser = argparse.ArgumentParser(description="todo")
+    parser = argparse.ArgumentParser(description="Example for pixel display client")
     parser.add_argument(
         "addr", help="MDNS address or IP:Port of the function block", type=str
     )
     args = parser.parse_args()
 
-    pixdisp_client = pixdisp.Client(args.addr + ":10001")
+    pixdisp_client = pixdisp.Client(args.addr)
 
     # test describe pixel display
     describe = pixdisp_client.describe()
