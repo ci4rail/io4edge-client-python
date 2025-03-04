@@ -38,20 +38,20 @@ def main():
     pic = 1
     while True:
         if pic == 1:
-            for i in range(200, 260, 20):
+            for i in range(0, 60, 20):
                 pix_area = []
                 for k in range (0, 20):
-                    for j in range(20, 60):
+                    for j in range(0, 40):
                         pix_area.append(pix1[j, i+k])
-                pixdisp_client.set_pixel_area(20, i, 59, pix_area)
+                pixdisp_client.set_pixel_area(20, i+200, 59, pix_area)
 
         if pic == 2:
-            for i in range(200, 260, 20):
+            for i in range(0, 60, 20):
                 pix_area = []
-                for k in range(0, 20):
-                    for j in range(20, 60):
+                for k in range (0, 20):
+                    for j in range(0, 40):
                         pix_area.append(pix2[j, i+k])
-                pixdisp_client.set_pixel_area(20, i, 59, pix_area)
+                pixdisp_client.set_pixel_area(20, i+200, 59, pix_area)
 
         pic = pic + 1
         if pic > 2:
