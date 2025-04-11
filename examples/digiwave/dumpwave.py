@@ -29,6 +29,7 @@ def edr_to_transitions(edr: bytes) -> list:
     seg_time = 0
     transitions = []
 
+    idx = 0
     for entry in edr:
         if entry & 0x7f == 0:
             # no transition, timeout
@@ -36,7 +37,11 @@ def edr_to_transitions(edr: bytes) -> list:
         else:
             seg_time += entry & 0x7f
             cur_val = True if entry & 0x80 else False
-            transitions.append((seg_time * 250E-9, not cur_val))
+            if idx == 0:
+                seg_time = 0
+            transitions.append((seg_time * 250, not cur_val))
+            idx += 1
+            
     return transitions
 
 def main():
@@ -64,7 +69,7 @@ def main():
         ),
     )
     edr = bytearray()
-    for loop in range(10):
+    for loop in range(100):
         try:
             generic_stream_data, stream_data = dw_client.read_stream(timeout=3)
         except TimeoutError:

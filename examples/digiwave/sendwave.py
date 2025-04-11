@@ -22,7 +22,7 @@ def parse_csv_to_dict(file_path):
                 'ch2_bitbus': row[1],
                 'time_250ns_tics': row[2],
                 'delta_tics': row[3],
-                'time_ps': row[4] if len(row) > 4 else None,
+                'time_ns': row[4] if len(row) > 4 else None,
                 'delta_ps': row[5] if len(row) > 5 else None,
                 'comment': row[6] if len(row) > 6 else None
             }
@@ -42,9 +42,9 @@ $upscope $end
 $enddefinitions $end
 """
     for entry in data:
-        time_ps = int(entry['time_ps'])
-        if time_ps is not None:
-            vcd += f"#{time_ps/1000}\n{entry['ch2_bitbus']}!\n"
+        time_ns = int(entry['time_ns'])
+        if time_ns is not None:
+            vcd += f"#{round(time_ns)}\n{entry['ch2_bitbus']}!\n"
     vcd += """
 $dumpoff
 $end
@@ -64,7 +64,7 @@ def entries_to_edr(data):
             else: 
                 v = dt & 0x7f
                 dt -= v
-            if level:
+            if not level:
                 v |= 0x80
             #print(f" v: {v}")
             edr.append(v)
@@ -89,7 +89,8 @@ def main():
     dw_client.upload_configuration(
         dw.Pb.ConfigurationSet(
             full_duplex = True,
-            claim_rx = True,
+            claim_rx = False,
+            
         )
     )
     
@@ -98,9 +99,11 @@ def main():
     vcd = entries_to_vcd(data)
     with open(args.wavecsv + '.vcd', 'w') as vcd_file:
         vcd_file.write(vcd)
-        
-    dw_client.send_wave(bytes(edr))
-        
+    
+    print(len(edr))
+    
+    # while True:    
+    dw_client.send_wave(bytes(edr[:3000]))
         
 if __name__ == "__main__":
     main()
