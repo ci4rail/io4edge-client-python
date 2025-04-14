@@ -12,7 +12,7 @@ class Client:
     """
 
     def __init__(self, addr: str, command_timeout=5):
-        self._fb_client = FbClient("_io4edge_bitbus._tcp", addr, command_timeout)
+        self._fb_client = FbClient("_io4edge_bitbusSniffer._tcp", addr, command_timeout)
 
     def upload_configuration(self, config: Pb.ConfigurationSet):
         """
