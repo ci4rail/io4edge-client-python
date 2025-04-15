@@ -4,7 +4,6 @@ import io4edge_client.bitbussniffer as bbsniffer
 import io4edge_client.functionblock as fb
 import argparse
 
-
 def main():
     parser = argparse.ArgumentParser(description="dump stream from bitbus sniffer")
     parser.add_argument(
@@ -30,7 +29,7 @@ def main():
         fb.Pb.StreamControlStart(
             bucketSamples=20,
             keepaliveInterval=1000,
-            bufferedSamples=60,
+            bufferedSamples=60,  # Minimum frames with max. length to buffer. If frames are small, much more frames are buffered
             low_latency_mode=args.lowlatency,
         ),
     )
@@ -53,14 +52,21 @@ def main():
 
 def sample_to_str(sample):
     ret_val = "%10d us: " % sample.timestamp
-    ret_val += f"ADDR: 0x{sample.bitbus_frame[0]:02X} "
-    ret_val += f"CTRL: 0x{sample.bitbus_frame[1]:02X} "
-    ret_val += "INFO: "
-    for i in range(2,len(sample.bitbus_frame)):
-        ret_val += "%02X " % sample.bitbus_frame[i]
+    if len(sample.bitbus_frame) >= 2:
+        ret_val += f"ADDR: 0x{sample.bitbus_frame[0]:02X} "
+        ret_val += f"CTRL: 0x{sample.bitbus_frame[1]:02X} "
+        ret_val += "INFO: "
+        for i in range(2,len(sample.bitbus_frame)):
+            ret_val += "%02X " % sample.bitbus_frame[i]
 
-    if sample.flags != 0:
-        ret_val += " flags: %02X" % sample.flags
+    if sample.flags != bbsniffer.Pb.Sample.Flags.none:
+        if sample.flags & bbsniffer.Pb.Sample.Flags.bad_crc:
+            ret_val += " CRC_ERR"
+        if sample.flags & bbsniffer.Pb.Sample.Flags.frames_lost:
+            ret_val += " LOST"
+        if sample.flags & bbsniffer.Pb.Sample.Flags.buf_overrun:
+            ret_val += " BUF_OVERRUN"
+        
     return ret_val
 
 
