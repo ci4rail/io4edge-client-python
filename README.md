@@ -10,6 +10,8 @@ This library provides support for the following function blocks within io4edge d
 * MVB Sniffer - IOU03, MIO03
 * Binary IO TypeB - IOU06, EKF SO1
 * Binary IO TypeC - IOU07
+* Bitbus Sniffer - IOU13
+* Digiwave - IOU13
 * Binary IO TypeD - EKF SQ1
 
 Currently not supported, but will follow:
