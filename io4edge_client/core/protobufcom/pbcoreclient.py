@@ -148,7 +148,7 @@ class PbCoreClient:
     def get_reset_reason(self) -> str:
         """
         Get the reason for the last reset of the io4edge device.
-        @return: reset reason as a Pb.ResetReason enum value
+        @return: reset reason as a string
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
