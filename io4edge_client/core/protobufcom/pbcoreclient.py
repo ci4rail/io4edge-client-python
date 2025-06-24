@@ -36,7 +36,7 @@ class PbCoreClient:
     def identify_hardware(self) -> HardwareIdentification:
         """
         Identify the hardware of io4edge device.
-        @return: hardware title and version as a tuple of string
+        @return: hardware identification containing root article, major version, and serial number
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
@@ -59,7 +59,7 @@ class PbCoreClient:
     def identify_firmware(self) -> FirmwareIdentification:
         """
         Identify the firmware version of io4edge device.
-        @return: firmware iden
+        @return: firmware identification containing name and version
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
