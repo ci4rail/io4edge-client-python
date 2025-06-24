@@ -84,7 +84,7 @@ class PbCoreClient:
         total_size = len(firmware)
         transferred_size = 0
 
-        while len(firmware) > 0:
+        while True:
             chunk_size = min(len(firmware), 1024)
             chunk = firmware[:chunk_size]
             firmware = firmware[chunk_size:]
@@ -97,12 +97,15 @@ class PbCoreClient:
                 id=Pb.CommandId.LOAD_FIRMWARE_CHUNK,
                 load_firmware_chunk=chunk_cmd)
             self.command(cmd, Pb.CoreResponse())
-            chunk_number += 1
             transferred_size += chunk_size
             if progress_cb:
                 # Update progress callback with percentage
                 progress_cb(
                     transferred_size / total_size * 100 if total_size > 0 else 100)
+            if len(firmware) == 0:
+                # Last chunk, break the loop
+                break
+            chunk_number += 1
 
     def restart(self) -> None:
         """
