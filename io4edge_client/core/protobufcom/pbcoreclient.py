@@ -1,3 +1,6 @@
+from contextlib import contextmanager
+import os
+import sys
 from io4edge_client.base import Client as BaseClient
 import io4edge_client.api.io4edge.python.core_api.v1alpha2.io4edge_core_api_pb2 as Pb
 from ..types import FirmwareIdentification, HardwareIdentification
@@ -11,9 +14,30 @@ class PbCoreClient:
     @param command_timeout: timeout for commands in seconds
     """
 
+    _client: BaseClient | None = None
+
     def __init__(self, addr: str, command_timeout=5):
-        self._client = BaseClient("_io4edge-core._tcp", addr)
+        self._addr = addr
         self._command_timeout = command_timeout
+
+    @contextmanager
+    def connection(self):
+        """
+        Context manager for the connection.
+
+        Note
+            It suppresses the output of the BaseClient to avoid cluttering the console.
+        """
+        original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+
+        self._client = BaseClient("_io4edge-core._tcp", self._addr)
+        try:
+            yield
+        finally:
+            self._client.close()
+            self._client = None
+            sys.stdout = original_stdout
 
     def command(self, cmd, response):
         """
@@ -23,15 +47,16 @@ class PbCoreClient:
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
-        self._client.write_msg(cmd)
-        self._client.read_msg(response, self._command_timeout)
-        # Due to a bug in the io4edge core, the response ID is not set correctly in the get/set parameter response.
-        if response.id != cmd.id and cmd.id != Pb.CommandId.GET_PERSISTENT_PARAMETER and cmd.id != Pb.CommandId.SET_PERSISTENT_PARAMETER:
-            raise RuntimeError(
-                f"Unexpected response ID, expected {cmd.id}, got {response.id}")
-        if response.status != Pb.Status.OK:
-            raise RuntimeError(
-                f"Command failed with status {response.status} ({Pb.Status.Name(response.status)})")
+        with self.connection():
+            self._client.write_msg(cmd)
+            self._client.read_msg(response, self._command_timeout)
+            # Due to a bug in the io4edge core, the response ID is not set correctly in the get/set parameter response.
+            if response.id != cmd.id and cmd.id != Pb.CommandId.GET_PERSISTENT_PARAMETER and cmd.id != Pb.CommandId.SET_PERSISTENT_PARAMETER:
+                raise RuntimeError(
+                    f"Unexpected response ID, expected {cmd.id}, got {response.id}")
+            if response.status != Pb.Status.OK:
+                raise RuntimeError(
+                    f"Command failed with status {response.status} ({Pb.Status.Name(response.status)})")
 
     def identify_hardware(self) -> HardwareIdentification:
         """
