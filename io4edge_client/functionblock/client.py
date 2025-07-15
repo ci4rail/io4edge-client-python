@@ -155,7 +155,8 @@ class Client:
         @return functionblock stream meta data (deliveryTimestampUs, sequence)
         @raises TimeoutError: if no data is available within the timeout
         """
-        self._stream_queue_sema.acquire(timeout=timeout)
+        if not self._stream_queue_sema.acquire(timeout=timeout):
+            raise TimeoutError("No data available within timeout")
         with self._stream_queue_mutex:
             data = self._stream_queue.popleft()
             pb_any_unpack(data.functionSpecificStreamData, stream_data)
@@ -179,9 +180,7 @@ class Client:
 
             if response.status != FbPb.Status.OK:
                 status_str = FbPb.Status.Name(response.status)
-                raise RuntimeError(
-                    f"Command failed: {status_str}: {response.error}"
-                )
+                raise RuntimeError(f"Command failed: {status_str}: {response.error}")
             return response
 
     def _read_thread(self):
