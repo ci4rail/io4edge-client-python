@@ -12,7 +12,7 @@ class Client:
             # addr may be a service name
             ip, port = self._find_mdns(addr + "." + service)
 
-        print(f"Connecting to {ip}:{port}")
+        #print(f"Connecting to {ip}:{port}")
         self._transport = SocketTransport(ip, port)
 
     def write_msg(self, msg):
@@ -62,7 +62,7 @@ class Client:
         service += ".local."
         instance = instance + "." + service
 
-        print("Looking for service %s %s" % (service, instance))
+        #print("Looking for service %s %s" % (service, instance))
 
         info = zeroconf.get_service_info(type_=service, name=instance)
         if info:
