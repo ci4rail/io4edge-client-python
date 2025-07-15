@@ -14,30 +14,22 @@ class PbCoreClient:
     @param command_timeout: timeout for commands in seconds
     """
 
-    _client: BaseClient | None = None
-
     def __init__(self, addr: str, command_timeout=5):
         self._addr = addr
         self._command_timeout = command_timeout
+        self._client: BaseClient | None = None
 
     @contextmanager
     def connection(self):
         """
         Context manager for the connection.
-
-        Note
-            It suppresses the output of the BaseClient to avoid cluttering the console.
         """
-        original_stdout = sys.stdout
-        sys.stdout = open(os.devnull, 'w')
-
         self._client = BaseClient("_io4edge-core._tcp", self._addr)
         try:
             yield
         finally:
             self._client.close()
             self._client = None
-            sys.stdout = original_stdout
 
     def command(self, cmd, response):
         """
