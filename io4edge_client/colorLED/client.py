@@ -24,7 +24,7 @@ class Client:
         self._fb_client.describe(Pb.ConfigurationDescribe(), fs_response)
         return fs_response
 
-    def set(self, color: Pb.Color, blink: bool):
+    def set(self, channel: int, color: Pb.Color, blink: bool):
         """
         Set the state of a single output.
         @param color: color to set
@@ -33,11 +33,12 @@ class Client:
         @raises TimeoutError: if the command times out
         """
         fs_cmd = Pb.FunctionControlSet()
+        fs_cmd.channel = channel
         fs_cmd.color = color
         fs_cmd.blink = blink
         self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
 
-    def get(self) -> tuple[Pb.Color, bool]:
+    def get(self, channel: int) -> tuple[Pb.Color, bool]:
         """
         Get the state of a single input.
         @param color: LED color
@@ -46,6 +47,7 @@ class Client:
         @raises TimeoutError: if the command times out
         """
         fs_cmd = Pb.FunctionControlGet()
+        fs_cmd.channel = channel
         fs_response = Pb.FunctionControlGetResponse()
         self._fb_client.function_control_get(fs_cmd, fs_response)
         return fs_response.color, fs_response.blink
