@@ -34,21 +34,6 @@ class Client:
         self._fb_client.download_configuration(Pb.ConfigurationGet(), fs_response)
         return fs_response
 
-    def input(self, channel: int) -> bool:
-        """
-        Get the state of a single channel, regardless whether its configured as input or output)
-        State "true" is returned if the input level is above switching threshold, "false" otherwise.
-        @param channel: channel number
-        @return: state of the input
-        @raises RuntimeError: if the command fails
-        @raises TimeoutError: if the command times out
-        """
-        fs_cmd = Pb.FunctionControlGet()
-        fs_cmd.single.channel = channel
-        fs_response = Pb.FunctionControlGetResponse()
-        self._fb_client.function_control_get(fs_cmd, fs_response)
-        return fs_response.single.state
-
     def value(self) -> int:
         """
         read the current analog input level.
