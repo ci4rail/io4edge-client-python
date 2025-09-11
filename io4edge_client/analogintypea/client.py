@@ -34,7 +34,7 @@ class Client:
         self._fb_client.download_configuration(Pb.ConfigurationGet(), fs_response)
         return fs_response
 
-    def value(self) -> int:
+    def value(self) -> float:
         """
         read the current analog input level.
 
