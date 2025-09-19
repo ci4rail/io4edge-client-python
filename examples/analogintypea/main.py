@@ -6,7 +6,7 @@ import argparse
 
 
 def main():
-    parser = argparse.ArgumentParser(description="demo for binary i/o type A client")
+    parser = argparse.ArgumentParser(description="demo for analog in type A client")
     parser.add_argument(
         "addr", help="MDNS address or IP:Port of the function block", type=str
     )
