@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifer: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 import io4edge_client.analogintypeb as ana
 import io4edge_client.functionblock as fb
 import argparse
 import datetime
+
 
 def highest_bit_set(x: int) -> int:
     """Return the highest bit set in x, or -1 if x is 0"""
@@ -46,7 +47,7 @@ def main():
     )
 
     args = parser.parse_args()
-    
+
     highest_channel = highest_bit_set(args.channelmask)
     if highest_channel < 0:
         print("Error: channelmask must have at least one bit set")
@@ -59,10 +60,9 @@ def main():
     for channel in range(highest_channel + 1):
         if (args.channelmask & (1 << channel)) != 0:
             config.channelConfig.add(
-                    channel=channel,
-                    sample_rate=args.sr,
-                    gain=args.gain)
-    
+                channel=channel, sample_rate=args.sr, gain=args.gain
+            )
+
     ana_client.upload_configuration(config)
 
     # read back the configuration
@@ -88,7 +88,10 @@ def main():
         )
         if args.dumpsamples:
             for sample in stream_data.samples:
-                print(" #%d: ts=%d ch %d %s" % (n, sample.timestamp, sample.baseChannel, sample.value))
+                print(
+                    " #%d: ts=%d ch %d %s"
+                    % (n, sample.timestamp, sample.baseChannel, sample.value)
+                )
                 n += 1
         else:
             n += len(stream_data.samples)

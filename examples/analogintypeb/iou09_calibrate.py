@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifer: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 import io4edge_client.core as core
 import io4edge_client.analogintypeb as ana
 import io4edge_client.functionblock as fb
@@ -55,7 +55,6 @@ def write_calibration(core_client, channel: int, offset: float, gain: float):
     core_client.set_persistent_parameter(gain_param_name(channel), f"{gain: .6f}")
 
 
-
 def create_clients(addr: str):
     ana_client = ana.Client(addr + "-anain")
     core_client = core.new_core_client(addr)
@@ -70,6 +69,7 @@ def purge_parameters(core_client):
 
 def prompt(msg: str):
     input(msg)
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -90,28 +90,30 @@ def main():
     gain = [1.0] * NUM_CHANNELS
     ana_client, core_client = create_clients(args.addr)
 
-    for channel in range(1,2):
+    for channel in range(1, 2):
         prompt(f"Connect channel {channel+1} to 0.0V and press Enter")
         raw_value = sample_for_calibration(ana_client, channel)
         if abs(raw_value) > 0.2:
             raise ValueError("measured value too far from 0.0V")
-        
+
         offset[channel] = raw_value
         write_calibration(core_client, channel, offset[channel], gain[channel])
-    
+
     core_client.restart()
     time.sleep(10)
     ana_client, core_client = create_clients(args.addr)
 
-    for channel in range(1,2):
+    for channel in range(1, 2):
         prompt(f"Connect channel {channel+1} to 10.0V and press Enter")
         raw_value = sample_for_calibration(ana_client, channel)
         if abs(raw_value) < 0.9 or abs(raw_value) > 1.1:
-            raise ValueError("measured value too far from 10.0V after offset calibration")
+            raise ValueError(
+                "measured value too far from 10.0V after offset calibration"
+            )
         gain[channel] = 1.0 / raw_value
         write_calibration(core_client, channel, offset[channel], gain[channel])
         core_client.restart()
-        
-        
+
+
 if __name__ == "__main__":
     main()

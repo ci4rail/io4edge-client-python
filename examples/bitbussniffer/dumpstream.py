@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifer: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 import io4edge_client.bitbussniffer as bbsniffer
 import io4edge_client.functionblock as fb
 import argparse
+
 
 def main():
     parser = argparse.ArgumentParser(description="dump stream from bitbus sniffer")
@@ -20,9 +21,9 @@ def main():
 
     bb_client.upload_configuration(
         bbsniffer.Pb.ConfigurationSet(
-                ignore_crc = True,
-                baud_62500 = False,
-                address_filter = bytes([0xff] * 32),
+            ignore_crc=True,
+            baud_62500=False,
+            address_filter=bytes([0xFF] * 32),
         )
     )
     bb_client.start_stream(
@@ -43,7 +44,11 @@ def main():
 
         print(
             "Received %d samples, seq=%d, ts=%d"
-            % (len(stream_data.samples), generic_stream_data.sequence, generic_stream_data.deliveryTimestampUs)
+            % (
+                len(stream_data.samples),
+                generic_stream_data.sequence,
+                generic_stream_data.deliveryTimestampUs,
+            )
         )
 
         for sample in stream_data.samples:
@@ -56,7 +61,7 @@ def sample_to_str(sample):
         ret_val += f"ADDR: 0x{sample.bitbus_frame[0]:02X} "
         ret_val += f"CTRL: 0x{sample.bitbus_frame[1]:02X} "
         ret_val += "INFO: "
-        for i in range(2,len(sample.bitbus_frame)):
+        for i in range(2, len(sample.bitbus_frame)):
             ret_val += "%02X " % sample.bitbus_frame[i]
 
     if sample.flags != bbsniffer.Pb.Sample.Flags.none:
@@ -66,7 +71,7 @@ def sample_to_str(sample):
             ret_val += " LOST"
         if sample.flags & bbsniffer.Pb.Sample.Flags.buf_overrun:
             ret_val += " BUF_OVERRUN"
-        
+
     return ret_val
 
 

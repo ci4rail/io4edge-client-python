@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifer: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 import io4edge_client.canl2 as canl2
 import io4edge_client.functionblock as fb
 import argparse
@@ -56,8 +56,11 @@ def main():
 
         print(
             "Received %d samples, seq=%d ctrl_state=%s"
-            % (len(stream_data.samples), generic_stream_data.sequence,
-               canl2.Pb._CONTROLLERSTATE.values_by_number[ctrl_state].name)
+            % (
+                len(stream_data.samples),
+                generic_stream_data.sequence,
+                canl2.Pb._CONTROLLERSTATE.values_by_number[ctrl_state].name,
+            )
         )
 
         for sample in stream_data.samples:

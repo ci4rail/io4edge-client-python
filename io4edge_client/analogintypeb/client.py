@@ -1,4 +1,4 @@
-# SPDX-License-Identifer: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.analogInTypeB.python.analogInTypeB.v1.analogInTypeB_pb2 as Pb
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
@@ -58,9 +58,7 @@ class Client:
         self._fb_client.function_control_get(fs_cmd, fs_response)
         return fs_response.value
 
-    def start_stream(
-        self, channel_mask: int, fb_config: FbPb.StreamControl
-    ):
+    def start_stream(self, channel_mask: int, fb_config: FbPb.StreamControl):
         """
         Start streaming of transitions.
         @param channel_mask: channels to enable for the stream

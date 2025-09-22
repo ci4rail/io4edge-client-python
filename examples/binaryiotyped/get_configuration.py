@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifer: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 import io4edge_client.binaryiotyped as binio
 import argparse
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Get binary i/o type D configuration client")
+    parser = argparse.ArgumentParser(
+        description="Get binary i/o type D configuration client"
+    )
     parser.add_argument(
         "addr", help="MDNS address or IP:Port of the function block", type=str
     )
@@ -24,6 +27,7 @@ def main():
             f"Watchdog Timeout ms          : {config.channelConfig[i].watchdogTimeoutMs}\n"
             f"Fritting Enable              : {config.channelConfig[i].frittingEnable}\n"
         )
+
 
 if __name__ == "__main__":
     main()

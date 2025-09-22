@@ -1,4 +1,4 @@
-# SPDX-License-Identifer: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 import socket
 import struct
 import select
@@ -30,7 +30,7 @@ class SocketTransport:
                 raise TimeoutError("timeout")
 
         hdr = self._rcv_all(6)
-        if hdr[0:2] == b"\xFE\xED":
+        if hdr[0:2] == b"\xfe\xed":
             len = struct.unpack("<L", hdr[2:6])[0]
             data = self._rcv_all(len)
             return data

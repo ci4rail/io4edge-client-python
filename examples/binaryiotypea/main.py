@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifer: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 import io4edge_client.binaryiotypea as binio
 import io4edge_client.functionblock as fb
 import argparse
@@ -23,9 +23,11 @@ def main():
     all_pins_mask = (1 << n_channels) - 1
 
     # configure the function block
-    config = binio.Pb.ConfigurationSet(outputFrittingMask=all_pins_mask,
-                                       outputWatchdogMask=all_pins_mask,
-                                       outputWatchdogTimeout=1000)
+    config = binio.Pb.ConfigurationSet(
+        outputFrittingMask=all_pins_mask,
+        outputWatchdogMask=all_pins_mask,
+        outputWatchdogTimeout=1000,
+    )
     binio_client.upload_configuration(config)
 
     # read back the configuration

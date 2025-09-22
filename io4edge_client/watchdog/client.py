@@ -1,4 +1,4 @@
-# SPDX-License-Identifer: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.watchdog.python.watchdog.v1.watchdog_pb2 as Pb
 

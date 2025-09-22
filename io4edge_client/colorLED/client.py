@@ -1,4 +1,4 @@
-# SPDX-License-Identifer: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.colorLED.python.colorLED.v1alpha1.colorLED_pb2 as Pb
 
