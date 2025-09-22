@@ -1,4 +1,4 @@
-# SPDX-License-Identifer: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.binaryIoTypeB.python.binaryIoTypeB.v1alpha1.binaryIoTypeB_pb2 as Pb
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
@@ -64,7 +64,7 @@ class Client:
         fs_response = Pb.FunctionControlGetResponse()
         self._fb_client.function_control_get(fs_cmd, fs_response)
         return fs_response.single.state
-    
+
     def get_all_inputs(self) -> int:
         """
         Get the state of all inputs.

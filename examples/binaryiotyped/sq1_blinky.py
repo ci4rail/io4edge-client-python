@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifer: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 
 # Test the two binary I/O groups of SQ1 against eachother
 # Group 1 operates as output, Group 2 operates as input
@@ -12,8 +12,11 @@ import io4edge_client.binaryiotyped as binio
 import argparse
 import time
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Tests the two binary I/O groups of SO1 against eachother")
+    parser = argparse.ArgumentParser(
+        description="Tests the two binary I/O groups of SO1 against eachother"
+    )
     parser.add_argument(
         "addr", help="MDNS address or IP:Port of the function block", type=str
     )
@@ -35,11 +38,14 @@ def main():
         for channel in range(4):
             for state in [True, False]:
                 binio_client.set_output(channel, state)
-                #print(f"Output {channel} set to {state}")
+                # print(f"Output {channel} set to {state}")
                 time.sleep(args.period / 1000)
 
-                err_count += check_channels(binio_client, ((1 if state else 0) << channel))
+                err_count += check_channels(
+                    binio_client, ((1 if state else 0) << channel)
+                )
                 print(f"Error count: {err_count}")
+
 
 def check_channels(binio_client, ch_mask):
     err_count = 0
@@ -65,7 +71,7 @@ def config(binio_client):
                 channelConfig=[
                     binio.Pb.ChannelConfig(
                         channel=channel,
-                        mode=2, # high-active output
+                        mode=2,  # high-active output
                         initialValue=0,
                         overloadRecoveryTimeoutMs=50,
                         watchdogTimeoutMs=2000,
@@ -79,7 +85,7 @@ def config(binio_client):
                 channelConfig=[
                     binio.Pb.ChannelConfig(
                         channel=channel,
-                        mode=0, # high-active input
+                        mode=0,  # high-active input
                         frittingEnable=True,
                     )
                 ]

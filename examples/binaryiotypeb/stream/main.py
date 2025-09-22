@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifer: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 import io4edge_client.binaryiotypeb as binio
 import io4edge_client.functionblock as fb
 import argparse
 import threading
 import time
-
-
 
 
 def main():
@@ -17,7 +15,7 @@ def main():
     args = parser.parse_args()
 
     binio_client = binio.Client(args.addr)
-    
+
     # start stream
     binio_client.start_stream(
         binio.Pb.StreamControlStart(),
@@ -26,11 +24,12 @@ def main():
             keepaliveInterval=1000,
             bufferedSamples=200,
             low_latency_mode=False,
-        ),)
+        ),
+    )
 
     while True:
         generic_stream_data, stream_data = binio_client.read_stream()
-        print ("Generic stream data: ", generic_stream_data)
+        print("Generic stream data: ", generic_stream_data)
         for sample in stream_data.samples:
             # print timestamp
             print(f"Timestamp: {sample.timestamp}")

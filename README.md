@@ -6,6 +6,7 @@ python client sdk for io4edge.
 This library provides support for the following function blocks within io4edge devices:
 * io4edge management functions, such as firmware update
 * Analog In TypeA - IOU01, MIO01
+* Analog In TypeB - IOU09, MIO09
 * Binary IO TypeA - IOU01, MIO01
 * CAN Layer2 - IOU03, MIO03, IOU04, MIO04, IOU06
 * MVB Sniffer - IOU03, MIO03
@@ -15,6 +16,8 @@ This library provides support for the following function blocks within io4edge d
 * Digiwave - IOU13
 * Binary IO TypeD - EKF SQ1
 * Pixel Display - EKF SQ3
+* Color LED - EKF Z1010
+* Watchdog - EKF Z1010
 
 Currently not supported, but will follow:
 * Motion Sensor - CPU01UC

@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifer: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 from PIL import Image
 import io4edge_client.pixelDisplay as pixdisp
 import argparse
 import time
-
 
 
 def main():
@@ -27,9 +26,9 @@ def main():
     # Set pixel area and set 16 lines at a time
     for i in range(0, 320, 20):
         pix_area = []
-        for k in range (0, 20):
+        for k in range(0, 20):
             for j in range(0, 240):
-                pix_area.append(pix[j, i+k])
+                pix_area.append(pix[j, i + k])
         pixdisp_client.set_pixel_area(0, i, 239, pix_area)
 
     pic = 1
@@ -37,18 +36,18 @@ def main():
         if pic == 1:
             for i in range(0, 60, 20):
                 pix_area = []
-                for k in range (0, 20):
+                for k in range(0, 20):
                     for j in range(0, 40):
-                        pix_area.append(pix1[j, i+k])
-                pixdisp_client.set_pixel_area(20, i+200, 59, pix_area)
+                        pix_area.append(pix1[j, i + k])
+                pixdisp_client.set_pixel_area(20, i + 200, 59, pix_area)
 
         if pic == 2:
             for i in range(0, 60, 20):
                 pix_area = []
-                for k in range (0, 20):
+                for k in range(0, 20):
                     for j in range(0, 40):
-                        pix_area.append(pix2[j, i+k])
-                pixdisp_client.set_pixel_area(20, i+200, 59, pix_area)
+                        pix_area.append(pix2[j, i + k])
+                pixdisp_client.set_pixel_area(20, i + 200, 59, pix_area)
 
         pic = pic + 1
         if pic > 2:

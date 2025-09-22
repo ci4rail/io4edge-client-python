@@ -1,4 +1,4 @@
-# SPDX-License-Identifer: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.bitbusSniffer.python.bitbusSniffer.v1.bitbusSniffer_pb2 as Pb
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
@@ -23,9 +23,7 @@ class Client:
         """
         self._fb_client.upload_configuration(config)
 
-    def start_stream(
-        self, fb_config: FbPb.StreamControl
-    ):
+    def start_stream(self, fb_config: FbPb.StreamControl):
         """
         Start streaming of bitbus data.
         @param fb_config: functionblock generic configuration of the stream

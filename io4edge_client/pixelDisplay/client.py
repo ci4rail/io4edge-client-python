@@ -1,4 +1,4 @@
-# SPDX-License-Identifer: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.pixelDisplay.python.pixelDisplay.v1alpha1.pixelDisplay_pb2 as Pb
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
@@ -39,11 +39,11 @@ class Client:
         @raises TimeoutError: if the command times out
         """
         fs_cmd = Pb.FunctionControlSet()
-        pixel = bytearray(len(pixel_area)*3)
+        pixel = bytearray(len(pixel_area) * 3)
         for i in range(len(pixel_area)):
-            pixel[i*3+0] = pixel_area[i][0]
-            pixel[i*3+1] = pixel_area[i][1]
-            pixel[i*3+2] = pixel_area[i][2]
+            pixel[i * 3 + 0] = pixel_area[i][0]
+            pixel[i * 3 + 1] = pixel_area[i][1]
+            pixel[i * 3 + 2] = pixel_area[i][2]
         fs_cmd.set_pixel_area.start_x = startx
         fs_cmd.set_pixel_area.start_y = starty
         fs_cmd.set_pixel_area.end_x = endx

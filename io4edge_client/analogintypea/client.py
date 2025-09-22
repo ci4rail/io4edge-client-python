@@ -1,4 +1,4 @@
-# SPDX-License-Identifer: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.analogInTypeA.python.analogInTypeA.v1alpha1.analogInTypeA_pb2 as Pb
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
@@ -34,22 +34,7 @@ class Client:
         self._fb_client.download_configuration(Pb.ConfigurationGet(), fs_response)
         return fs_response
 
-    def input(self, channel: int) -> bool:
-        """
-        Get the state of a single channel, regardless whether its configured as input or output)
-        State "true" is returned if the input level is above switching threshold, "false" otherwise.
-        @param channel: channel number
-        @return: state of the input
-        @raises RuntimeError: if the command fails
-        @raises TimeoutError: if the command times out
-        """
-        fs_cmd = Pb.FunctionControlGet()
-        fs_cmd.single.channel = channel
-        fs_response = Pb.FunctionControlGetResponse()
-        self._fb_client.function_control_get(fs_cmd, fs_response)
-        return fs_response.single.state
-
-    def value(self) -> int:
+    def value(self) -> float:
         """
         read the current analog input level.
 
@@ -62,9 +47,7 @@ class Client:
         self._fb_client.function_control_get(fs_cmd, fs_response)
         return fs_response.value
 
-    def start_stream(
-        self, fb_config: FbPb.StreamControl
-    ):
+    def start_stream(self, fb_config: FbPb.StreamControl):
         """
         Start streaming of transitions.
         @param fb_config: functionblock generic configuration of the stream

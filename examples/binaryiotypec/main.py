@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifer: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 import io4edge_client.binaryiotypec as binio
 import io4edge_client.functionblock as fb
 import argparse
