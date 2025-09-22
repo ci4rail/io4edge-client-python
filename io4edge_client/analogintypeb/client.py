@@ -6,7 +6,7 @@ import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_function
 
 class Client:
     """
-    analogInTypeA functionblock client.
+    analogInTypeB functionblock client.
     @param addr: address of io4edge function block (mdns name or "ip:port" address)
     @param command_timeout: timeout for commands in seconds
     """
@@ -81,7 +81,7 @@ class Client:
         """
         Read the next message from the stream.
         @param timeout: timeout in seconds
-        @return: functionblock generic stream data (deliveryTimestampUs, sequence), analogInTypeA specific stream data
+        @return: functionblock generic stream data (deliveryTimestampUs, sequence), analogInTypeB specific stream data
         @raises TimeoutError: if no data is available within the timeout
         """
         stream_data = Pb.StreamData()
