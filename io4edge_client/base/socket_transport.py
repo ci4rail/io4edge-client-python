@@ -5,11 +5,34 @@ import select
 
 
 class SocketTransport:
-    def __init__(self, host, port):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-        s.connect((host, port))
-        self._socket = s
+    def __init__(self, host, port, connect=True):
+        self._host = host
+        self._port = port
+        self._socket = None
+        if connect:
+            self.open()
+
+    def __enter__(self):
+        if self._socket is None:
+            self.open()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self._socket is not None:
+            self.close()
+            self._socket = None
+
+    def open(self):
+        if self._socket is None:
+            self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self._socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            self._socket.connect((self._host, self._port))
+            return self
+        return
+
+    @property
+    def connected(self):
+        return self._socket is not None
 
     def write(self, data: bytes) -> int:
         """
