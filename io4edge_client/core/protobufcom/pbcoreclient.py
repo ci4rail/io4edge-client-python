@@ -17,19 +17,7 @@ class PbCoreClient:
     def __init__(self, addr: str, command_timeout=5):
         self._addr = addr
         self._command_timeout = command_timeout
-        self._client: BaseClient | None = None
-
-    @contextmanager
-    def connection(self):
-        """
-        Context manager for the connection.
-        """
-        self._client = BaseClient("_io4edge-core._tcp", self._addr)
-        try:
-            yield
-        finally:
-            self._client.close()
-            self._client = None
+        self._client: BaseClient | None = BaseClient("_io4edge-core._tcp", self._addr, connect=False)
 
     def command(self, cmd, response):
         """
@@ -39,9 +27,9 @@ class PbCoreClient:
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
-        with self.connection():
-            self._client.write_msg(cmd)
-            self._client.read_msg(response, self._command_timeout)
+        with self._client as client:
+            client.write_msg(cmd)
+            client.read_msg(response, self._command_timeout)
             # Due to a bug in the io4edge core, the response ID is not set correctly in the get/set parameter response.
             if response.id != cmd.id and cmd.id != Pb.CommandId.GET_PERSISTENT_PARAMETER and cmd.id != Pb.CommandId.SET_PERSISTENT_PARAMETER:
                 raise RuntimeError(

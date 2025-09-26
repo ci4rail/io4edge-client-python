@@ -5,14 +5,14 @@ from .socket_transport import SocketTransport
 
 class Client:
     def __init__(self, service: str, addr: str, connect=True):
-         # detect if addr is a service name or an IP address
+        # detect if addr is a service name or an IP address
         try:
-            ip, port = self._net_address_split(self._addr)
+            ip, port = self._net_address_split(addr)
         except ValueError:
             # addr may be a service name
-            ip, port = self._find_mdns(self._addr + "." + self._service)
+            ip, port = self._find_mdns(addr + "." + service)
 
-        #print(f"Connecting to {ip}:{port}")
+        # print(f"Connecting to {ip}:{port}")
         if ip is None:
             raise RuntimeError("service not found")
 
@@ -38,13 +38,13 @@ class Client:
         """
         Marshall msg and write it to the server
         """
+        data = msg.SerializeToString()
+
         if not self.connected:
             with self._transport as t:
-                data = msg.SerializeToString()
                 t.write(data)
                 return
 
-        data = msg.SerializeToString()
         self._transport.write(data)
 
     def read_msg(self, msg, timeout):
