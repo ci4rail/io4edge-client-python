@@ -10,8 +10,8 @@ class Client:
     @param command_timeout: timeout for commands in seconds
     """
 
-    def __init__(self, addr: str, command_timeout=5):
-        self._fb_client = FbClient("_io4edge_watchdog._tcp", addr, command_timeout)
+    def __init__(self, addr: str, command_timeout=5, connect=True):
+        self._fb_client = FbClient("_io4edge_watchdog._tcp", addr, command_timeout, connect=connect)
 
     def describe(self) -> Pb.ConfigurationDescribeResponse:
         """

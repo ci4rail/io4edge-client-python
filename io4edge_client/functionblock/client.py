@@ -15,8 +15,8 @@ class Client:
     @param command_timeout: timeout for commands in seconds
     """
 
-    def __init__(self, service: str, addr: str, command_timeout=5):
-        self._client = BaseClient(service, addr)
+    def __init__(self, service: str, addr: str, command_timeout=5, connect=True):
+        self._client = BaseClient(service, addr, connect=connect)
         self._stream_queue_mutex = (
             threading.Lock()
         )  # Protects _stream_queue from concurrent access
