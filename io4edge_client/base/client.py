@@ -4,7 +4,7 @@ from .socket_transport import SocketTransport
 
 
 class Client:
-    def __init__(self, service: str, addr: str):
+    def __init__(self, service: str, addr: str, connect=True):
         # detect if addr is a service name or an IP address
         try:
             ip, port = self._net_address_split(addr)
@@ -13,13 +13,38 @@ class Client:
             ip, port = self._find_mdns(addr + "." + service)
 
         # print(f"Connecting to {ip}:{port}")
-        self._transport = SocketTransport(ip, port)
+        if ip is None:
+            raise RuntimeError("service not found")
+
+        self._transport = SocketTransport(ip, port, connect)
+
+    @property
+    def connected(self):
+        return self._transport is not None and self._transport.connected
+
+    def open(self):
+        if self.connected:
+            return
+        self._transport.open()
+
+    def __enter__(self):
+        self.open()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
     def write_msg(self, msg):
         """
         Marshall msg and write it to the server
         """
         data = msg.SerializeToString()
+
+        if not self.connected:
+            with self._transport as t:
+                t.write(data)
+                return
+
         self._transport.write(data)
 
     def read_msg(self, msg, timeout):
@@ -28,6 +53,11 @@ class Client:
         Pass msg as a protobuf message type with the expected type.
         If timeout is not None, raise TimeoutError if no message is received within timeout seconds.
         """
+        if not self.connected:
+            with self._transport as t:
+                data = t.read(timeout)
+                msg.ParseFromString(bytes(data))
+                return
         data = self._transport.read(timeout)
         msg.ParseFromString(bytes(data))
 
