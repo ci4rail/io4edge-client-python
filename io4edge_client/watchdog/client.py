@@ -10,7 +10,7 @@ class Client:
     @param command_timeout: timeout for commands in seconds
     """
 
-    def __init__(self, addr: str, command_timeout=5, connect=True):
+    def __init__(self, addr: str, command_timeout=5, connect=False):
         self._fb_client = FbClient("_io4edge_watchdog._tcp", addr, command_timeout, connect=connect)
 
     def describe(self) -> Pb.ConfigurationDescribeResponse:
@@ -21,7 +21,11 @@ class Client:
         @raises TimeoutError: if the command times out
         """
         fs_response = Pb.ConfigurationDescribeResponse()
-        self._fb_client.describe(Pb.ConfigurationDescribe(), fs_response)
+        if self._fb_client.connected:
+            self._fb_client.describe(Pb.ConfigurationDescribe(), fs_response)
+        else:
+            with self._fb_client as fb:
+                fb.describe(Pb.ConfigurationDescribe(), fs_response)
         return fs_response
 
     def kick(self):
@@ -32,7 +36,11 @@ class Client:
         """
         fs_cmd = Pb.FunctionControlSet()
         fs_cmd.kick = True
-        self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
+        if self._fb_client.connected:
+            self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
+        else:
+            with self._fb_client as fb:
+                fb.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
 
     def close(self):
         """
