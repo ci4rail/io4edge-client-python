@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 import threading
 from collections import deque
+from time import sleep
 from io4edge_client.base import Client as BaseClient
 from ..util.any import pb_any_unpack
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
@@ -29,9 +30,29 @@ class Client:
         self._cmd_response = None
         self._cmd_context = 0  # sequence number for command context
         self._cmd_timeout = command_timeout
-        self._read_thread_stop = False
-        self._read_thread_id = threading.Thread(target=self._read_thread, daemon=True)
-        self._read_thread_id.start()
+        self._read_thread_stop = True
+        if connect:
+            self.open()
+
+    def __enter__(self):
+        self.open()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def open(self):
+        if not self._client.connected:
+            self._client.open()
+            self._read_thread_stop = False
+            self._read_thread_id = threading.Thread(
+                target=self._read_thread, daemon=True
+            )
+            self._read_thread_id.start()
+
+    @property
+    def connected(self):
+        return self._client.connected and not self._read_thread_stop
 
     def upload_configuration(self, fs_cmd):
         """
@@ -187,7 +208,7 @@ class Client:
         while not self._read_thread_stop:
             msg = FbPb.Response()
             try:
-                self._client.read_msg(msg, timeout=1)
+                self._client.read_msg(msg, timeout=1)  # yield to other threads
             except TimeoutError:
                 continue
 

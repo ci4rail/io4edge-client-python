@@ -22,7 +22,11 @@ class Client:
         @raises TimeoutError: if the command times out
         """
         fs_response = Pb.ConfigurationDescribeResponse()
-        self._fb_client.describe(Pb.ConfigurationDescribe(), fs_response)
+        if self._fb_client.connected:
+            self._fb_client.describe(Pb.ConfigurationDescribe(), fs_response)
+        else:
+            with self._fb_client as fb:
+                fb.describe(Pb.ConfigurationDescribe(), fs_response)
         return fs_response
 
     def set_output(self, channel: int, state: bool):
@@ -36,7 +40,11 @@ class Client:
         fs_cmd = Pb.FunctionControlSet()
         fs_cmd.single.channel = channel
         fs_cmd.single.state = state
-        self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
+        if self._fb_client.connected:
+            self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
+        else:
+            with self._fb_client as fb:
+                fb.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
 
     def set_all_outputs(self, states: int, mask: int):
         """
@@ -49,7 +57,11 @@ class Client:
         fs_cmd = Pb.FunctionControlSet()
         fs_cmd.all.values = states
         fs_cmd.all.mask = mask
-        self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
+        if self._fb_client.connected:
+            self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
+        else:
+            with self._fb_client as fb:
+                fb.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
 
     def get_input(self, channel: int) -> bool:
         """
@@ -62,7 +74,11 @@ class Client:
         fs_cmd = Pb.FunctionControlGet()
         fs_cmd.single.channel = channel
         fs_response = Pb.FunctionControlGetResponse()
-        self._fb_client.function_control_get(fs_cmd, fs_response)
+        if self._fb_client.connected:
+            self._fb_client.function_control_get(fs_cmd, fs_response)
+        else:
+            with self._fb_client as fb:
+                fb.function_control_get(fs_cmd, fs_response)
         return fs_response.single.state
 
     def get_all_inputs(self) -> int:
@@ -74,7 +90,11 @@ class Client:
         """
         fs_cmd = Pb.FunctionControlGet()
         fs_response = Pb.FunctionControlGetResponse()
-        self._fb_client.function_control_get(fs_cmd, fs_response)
+        if self._fb_client.connected:
+            self._fb_client.function_control_get(fs_cmd, fs_response)
+        else:
+            with self._fb_client as fb:
+                fb.function_control_get(fs_cmd, fs_response)
         return fs_response.all.values
 
     def close(self):
