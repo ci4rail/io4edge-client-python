@@ -13,6 +13,23 @@ class Client:
 
     def __init__(self, addr: str, command_timeout=5, connect=True):
         self._fb_client = FbClient("_io4edge_analogInTypeB._tcp", addr, command_timeout, connect=connect)
+        self.is_streaming = False
+
+    def open(self):
+        if self.connected:
+            return
+        self._fb_client.open()
+
+    @property
+    def connected(self):
+        return self._fb_client is not None and self._fb_client.connected
+
+    def __enter__(self):
+        self.open()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
     def upload_configuration(self, config: Pb.ConfigurationSet):
         """
@@ -68,6 +85,7 @@ class Client:
         """
         config = Pb.StreamControlStart(channelMask=channel_mask)
         self._fb_client.start_stream(config, fb_config)
+        self.is_streaming = True
 
     def stop_stream(self):
         """
@@ -76,6 +94,7 @@ class Client:
         @raises TimeoutError: if the command times out
         """
         self._fb_client.stop_stream()
+        self.is_streaming = False
 
     def read_stream(self, timeout=None):
         """
@@ -93,4 +112,6 @@ class Client:
         Close the connection to the function block, terminate read thread.
         After calling this method, the object is no longer usable.
         """
+        if self.is_streaming:
+            self.stop_stream()
         self._fb_client.close()

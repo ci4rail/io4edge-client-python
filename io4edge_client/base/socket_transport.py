@@ -18,8 +18,7 @@ class SocketTransport:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self._socket is not None:
-            self.close()
+        self.close()
 
     def open(self):
         if self._socket is None:
@@ -68,5 +67,6 @@ class SocketTransport:
         return buf
 
     def close(self):
-        self._socket.close()
-        self._socket = None
+        if self.connected:
+            self._socket.close()
+            self._socket = None

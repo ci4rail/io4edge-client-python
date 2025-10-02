@@ -14,6 +14,22 @@ class Client:
     def __init__(self, addr: str, command_timeout=5, connect=True):
         self._fb_client = FbClient("_io4edge_binaryIoTypeB._tcp", addr, command_timeout, connect=connect)
 
+    @property
+    def connected(self):
+        return self._fb_client is not None and self._fb_client.connected
+
+    def open(self):
+        if self.connected:
+            return
+        self._fb_client.open()
+
+    def __enter__(self):
+        self.open()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
     def describe(self) -> Pb.ConfigurationDescribeResponse:
         """
         Get the description from the binaryIoTypeB functionblock.
