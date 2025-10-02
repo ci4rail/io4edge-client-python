@@ -25,6 +25,7 @@ class SocketTransport:
             self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self._socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             self._socket.connect((self._host, self._port))
+            print(f"Connected to {self._host}:{self._port}")
             return self
         return
 
@@ -70,3 +71,4 @@ class SocketTransport:
         if self.connected:
             self._socket.close()
             self._socket = None
+            print(f"Disconnected from {self._host}:{self._port}")
