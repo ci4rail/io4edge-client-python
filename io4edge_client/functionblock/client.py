@@ -42,7 +42,7 @@ class Client:
         self.close()
 
     def open(self):
-        if not self._client.connected:
+        if not self.connected:
             self._client.open()
             self._read_thread_stop = False
             self._read_thread_id = threading.Thread(

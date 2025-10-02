@@ -10,8 +10,10 @@ class Client:
     @param command_timeout: timeout for commands in seconds
     """
 
-    def __init__(self, addr: str, command_timeout=5):
-        self._fb_client = FbClient("_io4edge_colorLED._tcp", addr, command_timeout, connect=False)
+    def __init__(self, addr: str, command_timeout=5, connect=False):
+        self._fb_client = FbClient(
+            "_io4edge_colorLED._tcp", addr, command_timeout, connect=connect
+        )
 
     def describe(self) -> Pb.ConfigurationDescribeResponse:
         """
@@ -41,7 +43,9 @@ class Client:
         fs_cmd.color = color
         fs_cmd.blink = blink
         if self._fb_client.connected:
-            self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
+            self._fb_client.function_control_set(
+                fs_cmd, Pb.FunctionControlSetResponse()
+            )
         else:
             with self._fb_client as fb:
                 fb.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
