@@ -14,10 +14,10 @@ class PbCoreClient:
     @param command_timeout: timeout for commands in seconds
     """
 
-    def __init__(self, addr: str, command_timeout=5):
+    def __init__(self, addr: str, command_timeout=5, connect=True):
         self._addr = addr
         self._command_timeout = command_timeout
-        self._client: BaseClient | None = BaseClient("_io4edge-core._tcp", self._addr, connect=False)
+        self._client: BaseClient | None = BaseClient("_io4edge-core._tcp", self._addr, connect=connect)
 
     def command(self, cmd, response):
         """
