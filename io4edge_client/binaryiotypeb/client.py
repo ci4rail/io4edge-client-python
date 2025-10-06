@@ -1,10 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
+from io4edge_client.base.connections import AbstractClient
 from io4edge_client.functionblock import Client as FbClient
+from io4edge_client.base import connectable
 import io4edge_client.api.binaryIoTypeB.python.binaryIoTypeB.v1alpha1.binaryIoTypeB_pb2 as Pb
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
 
 
-class Client:
+class Client(AbstractClient):
     """
     binaryIoTypeB functionblock client.
     @param addr: address of io4edge function block (mdns name or "ip:port" address)
@@ -12,16 +14,18 @@ class Client:
     """
 
     def __init__(self, addr: str, command_timeout=5, connect=True):
-        self._fb_client = FbClient("_io4edge_binaryIoTypeB._tcp", addr, command_timeout, connect=connect)
+        self._client = FbClient(
+            "_io4edge_binaryIoTypeB._tcp", addr, command_timeout, connect=connect
+        )
 
     @property
     def connected(self):
-        return self._fb_client is not None and self._fb_client.connected
+        return self._client is not None and self._client.connected
 
     def open(self):
         if self.connected:
             return
-        self._fb_client.open()
+        self._client.open()
 
     def __enter__(self):
         self.open()
@@ -30,6 +34,7 @@ class Client:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
+    @connectable
     def describe(self) -> Pb.ConfigurationDescribeResponse:
         """
         Get the description from the binaryIoTypeB functionblock.
@@ -38,13 +43,10 @@ class Client:
         @raises TimeoutError: if the command times out
         """
         fs_response = Pb.ConfigurationDescribeResponse()
-        if self._fb_client.connected:
-            self._fb_client.describe(Pb.ConfigurationDescribe(), fs_response)
-        else:
-            with self._fb_client as fb:
-                fb.describe(Pb.ConfigurationDescribe(), fs_response)
+        self._client.describe(Pb.ConfigurationDescribe(), fs_response)
         return fs_response
 
+    @connectable
     def set_output(self, channel: int, state: bool):
         """
         Set the state of a single output.
@@ -56,12 +58,9 @@ class Client:
         fs_cmd = Pb.FunctionControlSet()
         fs_cmd.single.channel = channel
         fs_cmd.single.state = state
-        if self._fb_client.connected:
-            self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
-        else:
-            with self._fb_client as fb:
-                fb.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
+        self._client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
 
+    @connectable
     def set_all_outputs(self, states: int, mask: int):
         """
         Set the state of all or a group of output channels.
@@ -73,12 +72,9 @@ class Client:
         fs_cmd = Pb.FunctionControlSet()
         fs_cmd.all.values = states
         fs_cmd.all.mask = mask
-        if self._fb_client.connected:
-            self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
-        else:
-            with self._fb_client as fb:
-                fb.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
+        self._client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
 
+    @connectable
     def get_input(self, channel: int) -> bool:
         """
         Get the state of a single input.
@@ -90,13 +86,10 @@ class Client:
         fs_cmd = Pb.FunctionControlGet()
         fs_cmd.single.channel = channel
         fs_response = Pb.FunctionControlGetResponse()
-        if self._fb_client.connected:
-            self._fb_client.function_control_get(fs_cmd, fs_response)
-        else:
-            with self._fb_client as fb:
-                fb.function_control_get(fs_cmd, fs_response)
+        self._client.function_control_get(fs_cmd, fs_response)
         return fs_response.single.state
 
+    @connectable
     def get_all_inputs(self) -> int:
         """
         Get the state of all inputs.
@@ -106,11 +99,7 @@ class Client:
         """
         fs_cmd = Pb.FunctionControlGet()
         fs_response = Pb.FunctionControlGetResponse()
-        if self._fb_client.connected:
-            self._fb_client.function_control_get(fs_cmd, fs_response)
-        else:
-            with self._fb_client as fb:
-                fb.function_control_get(fs_cmd, fs_response)
+        self._client.function_control_get(fs_cmd, fs_response)
         return fs_response.all.values
 
     def close(self):
@@ -118,7 +107,7 @@ class Client:
         Close the connection to the function block, terminate read thread.
         After calling this method, the object is no longer usable.
         """
-        self._fb_client.close()
+        self._client.close()
 
     def start_stream(
         self, config: Pb.StreamControlStart, fb_config: FbPb.StreamControl
@@ -130,7 +119,7 @@ class Client:
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
-        self._fb_client.start_stream(config, fb_config)
+        self._client.start_stream(config, fb_config)
 
     def stop_stream(self):
         """
@@ -138,7 +127,7 @@ class Client:
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
-        self._fb_client.stop_stream()
+        self._client.stop_stream()
 
     def read_stream(self, timeout=None):
         """
@@ -148,5 +137,5 @@ class Client:
         @raises TimeoutError: if no data is available within the timeout
         """
         stream_data = Pb.StreamData()
-        generic_stream_data = self._fb_client.read_stream(timeout, stream_data)
+        generic_stream_data = self._client.read_stream(timeout, stream_data)
         return generic_stream_data, stream_data
