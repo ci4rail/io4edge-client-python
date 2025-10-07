@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
+from io4edge_client.base.connections import ClientConnection, connectable
 from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.watchdog.python.watchdog.v1.watchdog_pb2 as Pb
 
 
-class Client:
+class Client(ClientConnection):
     """
      functionblock client.
     @param addr: address of io4edge function block (mdns name or "ip:port" address)
@@ -11,8 +12,9 @@ class Client:
     """
 
     def __init__(self, addr: str, command_timeout=5, connect=False):
-        self._fb_client = FbClient("_io4edge_watchdog._tcp", addr, command_timeout, connect=connect)
+        super().__init__(FbClient("_io4edge_watchdog._tcp", addr, command_timeout, connect=connect))
 
+    @connectable
     def describe(self) -> Pb.ConfigurationDescribeResponse:
         """
         Get the description from the watchdog functionblock.
@@ -21,13 +23,10 @@ class Client:
         @raises TimeoutError: if the command times out
         """
         fs_response = Pb.ConfigurationDescribeResponse()
-        if self._fb_client.connected:
-            self._fb_client.describe(Pb.ConfigurationDescribe(), fs_response)
-        else:
-            with self._fb_client as fb:
-                fb.describe(Pb.ConfigurationDescribe(), fs_response)
+        self._client.describe(Pb.ConfigurationDescribe(), fs_response)
         return fs_response
 
+    @connectable
     def kick(self):
         """
         Kick the watchdog to prevent a timeout.
@@ -36,15 +35,4 @@ class Client:
         """
         fs_cmd = Pb.FunctionControlSet()
         fs_cmd.kick = True
-        if self._fb_client.connected:
-            self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
-        else:
-            with self._fb_client as fb:
-                fb.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
-
-    def close(self):
-        """
-        Close the connection to the function block, terminate read thread.
-        After calling this method, the object is no longer usable.
-        """
-        self._fb_client.close()
+        self._client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())

@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
-from io4edge_client.base.connections import connectable
+from io4edge_client.base.connections import ClientConnection, connectable
 from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.binaryIoTypeA.python.binaryIoTypeA.v1alpha1.binaryIoTypeA_pb2 as Pb
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
 
 
-class Client:
+class Client(ClientConnection):
     """
     binaryIoTypeA functionblock client.
     @param addr: address of io4edge function block (mdns name or "ip:port" address)
@@ -13,7 +13,8 @@ class Client:
     """
 
     def __init__(self, addr: str, command_timeout=5, connect=True):
-        self._client = FbClient("_io4edge_binaryIoTypeA._tcp", addr, command_timeout, connect=connect)
+        super().__init__(FbClient("_io4edge_binaryIoTypeA._tcp", addr, command_timeout, connect=connect))
+        self.is_streaming = False
 
     @connectable
     def upload_configuration(self, config: Pb.ConfigurationSet):
@@ -137,6 +138,7 @@ class Client:
         @raises TimeoutError: if the command times out
         """
         self._client.start_stream(config, fb_config)
+        self.is_streaming = True
 
     def stop_stream(self):
         """
@@ -145,6 +147,7 @@ class Client:
         @raises TimeoutError: if the command times out
         """
         self._client.stop_stream()
+        self.is_streaming = False
 
     def read_stream(self, timeout=None):
         """
@@ -156,10 +159,3 @@ class Client:
         stream_data = Pb.StreamData()
         generic_stream_data = self._client.read_stream(timeout, stream_data)
         return generic_stream_data, stream_data
-
-    def close(self):
-        """
-        Close the connection to the function block, terminate read thread.
-        After calling this method, the object is no longer usable.
-        """
-        self._client.close()

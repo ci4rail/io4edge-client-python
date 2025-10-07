@@ -4,12 +4,12 @@ from sqlite3 import connect
 import sys
 from io4edge_client.base import Client as BaseClient
 import io4edge_client.api.io4edge.python.core_api.v1alpha2.io4edge_core_api_pb2 as Pb
-from io4edge_client.base.connections import AbstractClient, connectable
+from io4edge_client.base.connections import AbstractConnection, ClientConnection, connectable
 from ..types import FirmwareIdentification, HardwareIdentification
 from typing import Callable, Optional
 
 
-class PbCoreClient(AbstractClient):
+class PbCoreClient(ClientConnection):
     """
     io4edge core client using protobuf communication.
     @param addr: address of io4edge function block (mdns name or "ip:port" address)
@@ -19,23 +19,7 @@ class PbCoreClient(AbstractClient):
     def __init__(self, addr: str, command_timeout=5, connect=True):
         self._addr = addr
         self._command_timeout = command_timeout
-        self._client: BaseClient | None = BaseClient("_io4edge-core._tcp", self._addr, connect=connect)
-
-    @property
-    def connected(self):
-        return self._client is not None and self._client.connected
-
-    def open(self):
-        if self.connected:
-            return
-        self._client.open()
-
-    def close(self):
-        """
-        Close the connection to the core.
-        """
-        if self.connected:
-            self._client.close()
+        super().__init__(BaseClient("_io4edge-core._tcp", self._addr, connect=False))
 
     @connectable
     def command(self, cmd, response):
@@ -56,6 +40,7 @@ class PbCoreClient(AbstractClient):
             raise RuntimeError(
                 f"Command failed with status {response.status} ({Pb.Status.Name(response.status)})")
 
+    @connectable
     def identify_hardware(self) -> HardwareIdentification:
         """
         Identify the hardware of io4edge device.
@@ -79,6 +64,7 @@ class PbCoreClient(AbstractClient):
             "Programming hardware identification is not implemented yet"
         )
 
+    @connectable
     def identify_firmware(self) -> FirmwareIdentification:
         """
         Identify the firmware version of io4edge device.
@@ -94,6 +80,7 @@ class PbCoreClient(AbstractClient):
             response.identify_firmware.version
         )
 
+    @connectable
     def load_firmware(self, firmware: bytes, progress_cb: Optional[Callable[[float], None]]) -> None:
         """
         Load firmware to io4edge device.
@@ -130,6 +117,7 @@ class PbCoreClient(AbstractClient):
                 break
             chunk_number += 1
 
+    @connectable
     def restart(self) -> None:
         """
         Restart the io4edge device.
@@ -139,6 +127,7 @@ class PbCoreClient(AbstractClient):
         cmd = Pb.CoreCommand(id=Pb.CommandId.RESTART)
         self.command(cmd, Pb.CoreResponse())
 
+    @connectable
     def set_persistent_parameter(self, name: str, value: str) -> None:
         """
         Set a persistent parameter on the io4edge device.
@@ -153,6 +142,7 @@ class PbCoreClient(AbstractClient):
                 name=name, value=value))
         self.command(cmd, Pb.CoreResponse())
 
+    @connectable
     def get_persistent_parameter(self, name: str) -> str:
         """
         Get a persistent parameter from the io4edge device.
@@ -168,6 +158,7 @@ class PbCoreClient(AbstractClient):
         self.command(cmd, response)
         return response.persistent_parameter.value
 
+    @connectable
     def get_reset_reason(self) -> str:
         """
         Get the reason for the last reset of the io4edge device.
