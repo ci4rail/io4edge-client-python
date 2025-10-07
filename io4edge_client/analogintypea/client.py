@@ -1,10 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
+from io4edge_client.base.connections import ClientConnection, connectable
 from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.analogInTypeA.python.analogInTypeA.v1alpha1.analogInTypeA_pb2 as Pb
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
 
 
-class Client:
+class Client(ClientConnection):
     """
     analogInTypeA functionblock client.
     @param addr: address of io4edge function block (mdns name or "ip:port" address)
@@ -12,8 +13,9 @@ class Client:
     """
 
     def __init__(self, addr: str, command_timeout=5, connect=True):
-        self._fb_client = FbClient("_io4edge_analogInTypeA._tcp", addr, command_timeout, connect=connect)
+        super().__init__(FbClient("_io4edge_analogInTypeA._tcp", addr, command_timeout, connect=connect))
 
+    @connectable
     def upload_configuration(self, config: Pb.ConfigurationSet):
         """
         Upload the configuration to the analogInTypeA functionblock.
@@ -21,8 +23,9 @@ class Client:
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
-        self._fb_client.upload_configuration(config)
+        self._client.upload_configuration(config)
 
+    @connectable
     def download_configuration(self) -> Pb.ConfigurationGetResponse:
         """
         Download the configuration from the analogInTypeA functionblock.
@@ -31,9 +34,10 @@ class Client:
         @raises TimeoutError: if the command times out
         """
         fs_response = Pb.ConfigurationGetResponse()
-        self._fb_client.download_configuration(Pb.ConfigurationGet(), fs_response)
+        self._client.download_configuration(Pb.ConfigurationGet(), fs_response)
         return fs_response
 
+    @connectable
     def value(self) -> float:
         """
         read the current analog input level.
@@ -44,7 +48,7 @@ class Client:
         """
         fs_cmd = Pb.FunctionControlGet()
         fs_response = Pb.FunctionControlGetResponse()
-        self._fb_client.function_control_get(fs_cmd, fs_response)
+        self._client.function_control_get(fs_cmd, fs_response)
         return fs_response.value
 
     def start_stream(self, fb_config: FbPb.StreamControl):
@@ -54,7 +58,7 @@ class Client:
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
-        self._fb_client.start_stream(Pb.StreamControlStart(), fb_config)
+        self._client.start_stream(Pb.StreamControlStart(), fb_config)
 
     def stop_stream(self):
         """
@@ -62,7 +66,7 @@ class Client:
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
-        self._fb_client.stop_stream()
+        self._client.stop_stream()
 
     def read_stream(self, timeout=None):
         """
@@ -72,12 +76,5 @@ class Client:
         @raises TimeoutError: if no data is available within the timeout
         """
         stream_data = Pb.StreamData()
-        generic_stream_data = self._fb_client.read_stream(timeout, stream_data)
+        generic_stream_data = self._client.read_stream(timeout, stream_data)
         return generic_stream_data, stream_data
-
-    def close(self):
-        """
-        Close the connection to the function block, terminate read thread.
-        After calling this method, the object is no longer usable.
-        """
-        self._fb_client.close()

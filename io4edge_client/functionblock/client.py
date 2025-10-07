@@ -3,12 +3,13 @@ import threading
 from collections import deque
 from time import sleep
 from io4edge_client.base import Client as BaseClient
+from io4edge_client.base.connections import ClientConnection, connectable
 from ..util.any import pb_any_unpack
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
 import google.protobuf.any_pb2 as AnyPb
 
 
-class Client:
+class Client(ClientConnection):
     """
     io4edge functionblock client.
     @param addr: address of io4edge function block (mdns name or "ip:port" address)
@@ -17,7 +18,7 @@ class Client:
     """
 
     def __init__(self, service: str, addr: str, command_timeout=5, connect=True):
-        self._client = BaseClient(service, addr, connect=connect)
+        super().__init__(BaseClient(service, addr, connect=connect))
         self._stream_queue_mutex = (
             threading.Lock()
         )  # Protects _stream_queue from concurrent access
@@ -34,13 +35,6 @@ class Client:
         if connect:
             self.open()
 
-    def __enter__(self):
-        self.open()
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
-
     def open(self):
         if not self.connected:
             self._client.open()
@@ -54,6 +48,16 @@ class Client:
     def connected(self):
         return self._client.connected and not self._read_thread_stop
 
+    def close(self):
+        """
+        Close the connection to the function block, terminate read thread.
+        After calling this method, the object is no longer usable.
+        """
+        self._read_thread_stop = True
+        self._read_thread_id.join()
+        self._client.close()
+
+    @connectable
     def upload_configuration(self, fs_cmd):
         """
         Upload configuration to io4edge function block.
@@ -68,6 +72,7 @@ class Client:
         fb_cmd.Configuration.functionSpecificConfigurationSet.CopyFrom(fs_any)
         self._command(fb_cmd)
 
+    @connectable
     def download_configuration(self, fs_cmd, fs_response):
         """
         Download configuration from io4edge function block.
@@ -86,6 +91,7 @@ class Client:
             fb_res.Configuration.functionSpecificConfigurationGet, fs_response
         )
 
+    @connectable
     def describe(self, fs_cmd, fs_response):
         """
         Describe the function block (call the firmware describe function).
@@ -104,6 +110,7 @@ class Client:
             fb_res.Configuration.functionSpecificConfigurationDescribe, fs_response
         )
 
+    @connectable
     def function_control_set(self, fs_cmd, fs_response):
         """
         Execute "function control set" command on io4edge function block.
@@ -122,6 +129,7 @@ class Client:
             fb_res.functionControl.functionSpecificFunctionControlSet, fs_response
         )
 
+    @connectable
     def function_control_get(self, fs_cmd, fs_response):
         """
         Execute "function control get" command on io4edge function block.
@@ -183,6 +191,7 @@ class Client:
             pb_any_unpack(data.functionSpecificStreamData, stream_data)
             return data
 
+    @connectable
     def _command(self, cmd: FbPb.Command):
         with self._cmd_mutex:
             cmd.context.value = str(self._cmd_context)
@@ -222,12 +231,3 @@ class Client:
         with self._stream_queue_mutex:
             self._stream_queue.append(stream_data)
         self._stream_queue_sema.release()
-
-    def close(self):
-        """
-        Close the connection to the function block, terminate read thread.
-        After calling this method, the object is no longer usable.
-        """
-        self._read_thread_stop = True
-        self._read_thread_id.join()
-        self._client.close()

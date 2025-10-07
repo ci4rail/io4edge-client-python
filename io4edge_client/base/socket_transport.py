@@ -3,24 +3,22 @@ import socket
 import struct
 import select
 
+from io4edge_client.base.connections import ClientConnection
 
-class SocketTransport:
+
+class SocketTransport(ClientConnection):
     def __init__(self, host, port, connect=True):
         self._host = host
         self._port = port
         self._socket = None
+
+        super().__init__(self)
+
         if connect:
             self.open()
 
-    def __enter__(self):
-        if self._socket is None:
-            self.open()
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
-
     def open(self):
+        # overrided from Connection
         if self._socket is None:
             self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self._socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -31,7 +29,15 @@ class SocketTransport:
 
     @property
     def connected(self):
+        # overrided from Connection
         return self._socket is not None
+
+    def close(self):
+        # overrided from Connection
+        if self.connected:
+            self._socket.close()
+            self._socket = None
+            print(f"Disconnected from {self._host}:{self._port}")
 
     def write(self, data: bytes) -> int:
         """
@@ -66,9 +72,3 @@ class SocketTransport:
             buf.extend(data)
             remaining -= len(data)
         return buf
-
-    def close(self):
-        if self.connected:
-            self._socket.close()
-            self._socket = None
-            print(f"Disconnected from {self._host}:{self._port}")

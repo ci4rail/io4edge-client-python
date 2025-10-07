@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
-from io4edge_client.base.connections import AbstractClient
+from io4edge_client.base.connections import ClientConnection
 from io4edge_client.functionblock import Client as FbClient
 from io4edge_client.base import connectable
 import io4edge_client.api.binaryIoTypeB.python.binaryIoTypeB.v1alpha1.binaryIoTypeB_pb2 as Pb
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
 
 
-class Client(AbstractClient):
+class Client(ClientConnection):
     """
     binaryIoTypeB functionblock client.
     @param addr: address of io4edge function block (mdns name or "ip:port" address)
@@ -18,21 +18,8 @@ class Client(AbstractClient):
             "_io4edge_binaryIoTypeB._tcp", addr, command_timeout, connect=connect
         )
 
-    @property
-    def connected(self):
-        return self._client is not None and self._client.connected
-
-    def open(self):
-        if self.connected:
-            return
-        self._client.open()
-
-    def __enter__(self):
-        self.open()
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
+        super().__init__(self._client)
+        self.is_streaming = False
 
     @connectable
     def describe(self) -> Pb.ConfigurationDescribeResponse:
@@ -101,13 +88,6 @@ class Client(AbstractClient):
         fs_response = Pb.FunctionControlGetResponse()
         self._client.function_control_get(fs_cmd, fs_response)
         return fs_response.all.values
-
-    def close(self):
-        """
-        Close the connection to the function block, terminate read thread.
-        After calling this method, the object is no longer usable.
-        """
-        self._client.close()
 
     def start_stream(
         self, config: Pb.StreamControlStart, fb_config: FbPb.StreamControl

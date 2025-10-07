@@ -1,9 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
 from zeroconf import Zeroconf
+
+from io4edge_client.base.connections import ClientConnection, connectable
 from .socket_transport import SocketTransport
 
 
-class Client:
+class Client(ClientConnection):
     def __init__(self, service: str, addr: str, connect=True):
         # detect if addr is a service name or an IP address
         try:
@@ -18,46 +20,23 @@ class Client:
 
         self._transport = SocketTransport(ip, port, connect)
 
-    @property
-    def connected(self):
-        return self._transport is not None and self._transport.connected
+        super().__init__(self._transport)
 
-    def open(self):
-        if self.connected:
-            return
-        self._transport.open()
-
-    def __enter__(self):
-        self.open()
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
-
+    @connectable
     def write_msg(self, msg):
         """
         Marshall msg and write it to the server
         """
         data = msg.SerializeToString()
-
-        if not self.connected:
-            with self._transport as t:
-                t.write(data)
-                return
-
         self._transport.write(data)
 
+    @connectable
     def read_msg(self, msg, timeout):
         """
         Wait for next message from server. Unmarshall it to msg.
         Pass msg as a protobuf message type with the expected type.
         If timeout is not None, raise TimeoutError if no message is received within timeout seconds.
         """
-        if not self.connected:
-            with self._transport as t:
-                data = t.read(timeout)
-                msg.ParseFromString(bytes(data))
-                return
         data = self._transport.read(timeout)
         msg.ParseFromString(bytes(data))
 
@@ -101,6 +80,3 @@ class Client:
             rv = None, 0
         zeroconf.close()
         return rv
-
-    def close(self):
-        self._transport.close()

@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+from io4edge_client.base.connections import ClientConnection, connectable
 from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.pixelDisplay.python.pixelDisplay.v1alpha1.pixelDisplay_pb2 as Pb
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
@@ -7,7 +8,7 @@ import zlib
 import sys
 
 
-class Client:
+class Client(ClientConnection):
     """
     pixelDisplay functionblock client.
     @param addr: address of io4edge function block (mdns name or "ip:port" address)
@@ -15,8 +16,9 @@ class Client:
     """
 
     def __init__(self, addr: str, command_timeout=5, connect=True):
-        self._fb_client = FbClient("_io4edge_pixelDisplay._tcp", addr, command_timeout, connect=connect)
+        super().__init__(FbClient("_io4edge_pixelDisplay._tcp", addr, command_timeout, connect=connect))
 
+    @connectable
     def describe(self) -> Pb.ConfigurationDescribeResponse:
         """
         Get the description from the pixelDisplay functionblock.
@@ -25,9 +27,10 @@ class Client:
         @raises TimeoutError: if the command times out
         """
         fs_response = Pb.ConfigurationDescribeResponse()
-        self._fb_client.describe(Pb.ConfigurationDescribe(), fs_response)
+        self._client.describe(Pb.ConfigurationDescribe(), fs_response)
         return fs_response
 
+    @connectable
     def set_pixel_area(self, startx: int, starty: int, endx: int, pixel_area: list):
         """
         Set the pixel area of the display.
@@ -49,8 +52,9 @@ class Client:
         fs_cmd.set_pixel_area.end_x = endx
         # compress pixel before sending to the function block
         fs_cmd.set_pixel_area.image = zlib.compress(pixel)
-        self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
+        self._client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
 
+    @connectable
     def set_display_off(self):
         """
         Set the state of all or a group of output channels.
@@ -61,11 +65,4 @@ class Client:
         """
         fs_cmd = Pb.FunctionControlSet()
         fs_cmd.display_on.on = False
-        self._fb_client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
-
-    def close(self):
-        """
-        Close the connection to the function block, terminate read thread.
-        After calling this method, the object is no longer usable.
-        """
-        self._fb_client.close()
+        self._client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
