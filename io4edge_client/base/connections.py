@@ -12,6 +12,7 @@ def connectable(func):
     - Check client protocol implementation
     - support usage on classes which implement context manager
     """
+
     @wraps(func)
     def connect(self, *args, **kwargs):
         if self.connected:
@@ -19,6 +20,7 @@ def connectable(func):
         else:
             with self._client:
                 return func(self, *args, **kwargs)
+
     return connect
 
 
@@ -39,6 +41,7 @@ class AbstractConnection(ABC):
     def close(self) -> None:
         """Close the client connection."""
         pass
+
 
 class ConnectionContextManager(AbstractConnection):
     def __enter__(self):
@@ -66,6 +69,7 @@ class ClientConnection(ConnectionContextManager):
         if self.connected:
             self._client.close()
 
+
 class ClientConnectionStream(ClientConnection):
     # TODO: must be enhanced using generics to support different stream message types
     def __init__(self, client: AbstractConnection):
@@ -78,7 +82,7 @@ class ClientConnectionStream(ClientConnection):
         super().close()
 
     @abstractmethod
-    def start_stream(self, config: Pb.StreamControlStart, fb_config: FbPb.StreamControl):
+    def start_stream(self, config, fb_config):
         """Start streaming of transitions."""
         pass
 
