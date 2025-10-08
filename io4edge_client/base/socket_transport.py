@@ -4,6 +4,9 @@ import struct
 import select
 
 from io4edge_client.base.connections import ClientConnection
+from io4edge_client.base.logging import io4edge_client_logger
+
+logger = io4edge_client_logger(__name__)
 
 
 class SocketTransport(ClientConnection):
@@ -19,13 +22,13 @@ class SocketTransport(ClientConnection):
 
     def open(self):
         # overrided from Connection
-        if self._socket is None:
+        if not self.connected:
             self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self._socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             self._socket.connect((self._host, self._port))
-            print(f"Connected to {self._host}:{self._port}")
-            return self
-        return
+            logger.info(f"Connected to {self._host}:{self._port}")
+        else:
+            logger.warning(f"Socket to {self._host}:{self._port} already connected")
 
     @property
     def connected(self):
@@ -37,7 +40,9 @@ class SocketTransport(ClientConnection):
         if self.connected:
             self._socket.close()
             self._socket = None
-            print(f"Disconnected from {self._host}:{self._port}")
+            logger.info(f"Disconnected from {self._host}:{self._port}")
+        else:
+            logger.warning(f"Socket to {self._host}:{self._port} already disconnected")
 
     def write(self, data: bytes) -> int:
         """
