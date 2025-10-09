@@ -1,7 +1,4 @@
 from contextlib import contextmanager
-import os
-from sqlite3 import connect
-import sys
 from io4edge_client.base import Client as BaseClient
 import io4edge_client.api.io4edge.python.core_api.v1alpha2.io4edge_core_api_pb2 as Pb
 from io4edge_client.base.connections import AbstractConnection, ClientConnection, connectable
@@ -19,7 +16,7 @@ class PbCoreClient(ClientConnection):
     def __init__(self, addr: str, command_timeout=5, connect=True):
         self._addr = addr
         self._command_timeout = command_timeout
-        super().__init__(BaseClient("_io4edge-core._tcp", self._addr, connect=False))
+        super().__init__(BaseClient("_io4edge-core._tcp", self._addr, connect=connect))
 
     @connectable
     def command(self, cmd, response):
