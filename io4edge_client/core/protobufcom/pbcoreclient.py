@@ -1,13 +1,12 @@
 from contextlib import contextmanager
-import os
-import sys
 from io4edge_client.base import Client as BaseClient
 import io4edge_client.api.io4edge.python.core_api.v1alpha2.io4edge_core_api_pb2 as Pb
+from io4edge_client.base.connections import AbstractConnection, ClientConnection, connectable
 from ..types import FirmwareIdentification, HardwareIdentification
 from typing import Callable, Optional
 
 
-class PbCoreClient:
+class PbCoreClient(ClientConnection):
     """
     io4edge core client using protobuf communication.
     @param addr: address of io4edge function block (mdns name or "ip:port" address)
@@ -17,8 +16,9 @@ class PbCoreClient:
     def __init__(self, addr: str, command_timeout=5, connect=True):
         self._addr = addr
         self._command_timeout = command_timeout
-        self._client: BaseClient | None = BaseClient("_io4edge-core._tcp", self._addr, connect=connect)
+        super().__init__(BaseClient("_io4edge-core._tcp", self._addr, connect=connect))
 
+    @connectable
     def command(self, cmd, response):
         """
         Send a command to the io4edge core.
@@ -27,17 +27,17 @@ class PbCoreClient:
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
-        with self._client as client:
-            client.write_msg(cmd)
-            client.read_msg(response, self._command_timeout)
-            # Due to a bug in the io4edge core, the response ID is not set correctly in the get/set parameter response.
-            if response.id != cmd.id and cmd.id != Pb.CommandId.GET_PERSISTENT_PARAMETER and cmd.id != Pb.CommandId.SET_PERSISTENT_PARAMETER:
-                raise RuntimeError(
-                    f"Unexpected response ID, expected {cmd.id}, got {response.id}")
-            if response.status != Pb.Status.OK:
-                raise RuntimeError(
-                    f"Command failed with status {response.status} ({Pb.Status.Name(response.status)})")
+        self._client.write_msg(cmd)
+        self._client.read_msg(response, self._command_timeout)
+        # Due to a bug in the io4edge core, the response ID is not set correctly in the get/set parameter response.
+        if response.id != cmd.id and cmd.id != Pb.CommandId.GET_PERSISTENT_PARAMETER and cmd.id != Pb.CommandId.SET_PERSISTENT_PARAMETER:
+            raise RuntimeError(
+                f"Unexpected response ID, expected {cmd.id}, got {response.id}")
+        if response.status != Pb.Status.OK:
+            raise RuntimeError(
+                f"Command failed with status {response.status} ({Pb.Status.Name(response.status)})")
 
+    @connectable
     def identify_hardware(self) -> HardwareIdentification:
         """
         Identify the hardware of io4edge device.
@@ -61,6 +61,7 @@ class PbCoreClient:
             "Programming hardware identification is not implemented yet"
         )
 
+    @connectable
     def identify_firmware(self) -> FirmwareIdentification:
         """
         Identify the firmware version of io4edge device.
@@ -76,6 +77,7 @@ class PbCoreClient:
             response.identify_firmware.version
         )
 
+    @connectable
     def load_firmware(self, firmware: bytes, progress_cb: Optional[Callable[[float], None]]) -> None:
         """
         Load firmware to io4edge device.
@@ -112,6 +114,7 @@ class PbCoreClient:
                 break
             chunk_number += 1
 
+    @connectable
     def restart(self) -> None:
         """
         Restart the io4edge device.
@@ -121,6 +124,7 @@ class PbCoreClient:
         cmd = Pb.CoreCommand(id=Pb.CommandId.RESTART)
         self.command(cmd, Pb.CoreResponse())
 
+    @connectable
     def set_persistent_parameter(self, name: str, value: str) -> None:
         """
         Set a persistent parameter on the io4edge device.
@@ -135,6 +139,7 @@ class PbCoreClient:
                 name=name, value=value))
         self.command(cmd, Pb.CoreResponse())
 
+    @connectable
     def get_persistent_parameter(self, name: str) -> str:
         """
         Get a persistent parameter from the io4edge device.
@@ -150,6 +155,7 @@ class PbCoreClient:
         self.command(cmd, response)
         return response.persistent_parameter.value
 
+    @connectable
     def get_reset_reason(self) -> str:
         """
         Get the reason for the last reset of the io4edge device.

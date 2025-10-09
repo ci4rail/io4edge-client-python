@@ -3,35 +3,46 @@ import socket
 import struct
 import select
 
+from io4edge_client.base.connections import ClientConnection
+from io4edge_client.base.logging import io4edge_client_logger
 
-class SocketTransport:
+logger = io4edge_client_logger(__name__)
+
+
+class SocketTransport(ClientConnection):
     def __init__(self, host, port, connect=True):
         self._host = host
         self._port = port
         self._socket = None
+
+        super().__init__(self)
+
         if connect:
             self.open()
 
-    def __enter__(self):
-        if self._socket is None:
-            self.open()
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if self._socket is not None:
-            self.close()
-
     def open(self):
-        if self._socket is None:
+        # overrided from Connection
+        if not self.connected:
             self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self._socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             self._socket.connect((self._host, self._port))
-            return self
-        return
+            logger.info(f"Connected to {self._host}:{self._port}")
+        else:
+            logger.warning(f"Socket to {self._host}:{self._port} already connected")
 
     @property
     def connected(self):
+        # overrided from Connection
         return self._socket is not None
+
+    def close(self):
+        # overrided from Connection
+        if self.connected:
+            self._socket.close()
+            self._socket = None
+            logger.info(f"Disconnected from {self._host}:{self._port}")
+        else:
+            logger.warning(f"Socket to {self._host}:{self._port} already disconnected")
 
     def write(self, data: bytes) -> int:
         """
@@ -66,7 +77,3 @@ class SocketTransport:
             buf.extend(data)
             remaining -= len(data)
         return buf
-
-    def close(self):
-        self._socket.close()
-        self._socket = None
