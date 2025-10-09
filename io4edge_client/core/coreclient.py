@@ -9,4 +9,4 @@ def new_core_client(addr: str, command_timeout=5, connect=True) -> PbCoreClient:
     @return: instance of PbCoreClient
     """
     # prepared to return later either a PbCoreClient or HTTPS REST API client
-    return PbCoreClient(addr, command_timeout)
+    return PbCoreClient(addr, command_timeout, connect)
