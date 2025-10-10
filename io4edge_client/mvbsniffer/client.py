@@ -3,7 +3,6 @@ from io4edge_client.base.connections import ClientConnectionStream, connectable
 from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.mvbSniffer.python.mvbSniffer.v1.mvbSniffer_pb2 as Pb
 import io4edge_client.api.mvbSniffer.python.mvbSniffer.v1.telegram_pb2 as TelegramPb
-import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
 
 
 class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
