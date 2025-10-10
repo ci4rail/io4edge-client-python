@@ -20,7 +20,7 @@ from .core import CoreClient
 from .functionblock import Client as FunctionblockClient
 
 # Version information
-from .version import __version__
+from .version import version
 
 __all__ = [
     # Device-specific clients
@@ -43,5 +43,5 @@ __all__ = [
     "FunctionblockClient",
 
     # Version
-    "__version__"
+    "version"
 ]
