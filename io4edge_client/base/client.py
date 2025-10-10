@@ -14,7 +14,6 @@ class Client(ClientConnection):
             # addr may be a service name
             ip, port = self._find_mdns(addr + "." + service)
 
-        # print(f"Connecting to {ip}:{port}")
         if ip is None:
             raise RuntimeError("service not found")
 

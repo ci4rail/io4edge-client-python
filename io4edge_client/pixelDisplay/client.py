@@ -2,10 +2,7 @@
 from io4edge_client.base.connections import ClientConnection, connectable
 from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.pixelDisplay.python.pixelDisplay.v1alpha1.pixelDisplay_pb2 as Pb
-import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
-import time
 import zlib
-import sys
 
 
 class Client(ClientConnection):

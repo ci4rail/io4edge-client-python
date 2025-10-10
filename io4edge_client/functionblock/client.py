@@ -5,7 +5,7 @@ from io4edge_client.base import Client as BaseClient
 from io4edge_client.base.connections import ClientConnection, connectable
 from ..util.any import pb_any_unpack
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
-import io4edge_client.api.google_wellknowntypes.python.google.protobuf.any_pb2 as AnyPb
+import google.protobuf.any_pb2 as AnyPb
 
 
 class Client(ClientConnection):

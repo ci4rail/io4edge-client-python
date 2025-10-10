@@ -1,7 +1,6 @@
-from contextlib import contextmanager
 from io4edge_client.base import Client as BaseClient
 import io4edge_client.api.io4edge.python.core_api.v1alpha2.io4edge_core_api_pb2 as Pb
-from io4edge_client.base.connections import AbstractConnection, ClientConnection, connectable
+from io4edge_client.base.connections import ClientConnection, connectable
 from ..types import FirmwareIdentification, HardwareIdentification
 from typing import Callable, Optional
 
