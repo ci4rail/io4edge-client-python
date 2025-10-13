@@ -67,7 +67,7 @@ def main():
                     print(
                         "one or more MVB frames are lost in the device since the last telegram"
                     )
-                if telegram.State & mvb.TelegramPb.Telegram.State.kMissedMVBFrames:
+                if telegram.state & mvb.TelegramPb.Telegram.State.kMissedMVBFrames:
                     print("one or more telegrams are lost")
             print(telegram_to_str(telegram))
 

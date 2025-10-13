@@ -1,4 +1,4 @@
-import io4edge_client.core as core
+import io4edge_client
 import argparse
 
 def main():
@@ -11,7 +11,7 @@ def main():
     )
     args = parser.parse_args()
 
-    core_client = core.new_core_client(args.addr)
+    core_client = io4edge_client.CoreClient(args.addr)
     print(f"{args.name}={core_client.get_persistent_parameter(args.name)}")
 
 
