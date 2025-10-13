@@ -1,4 +1,4 @@
-import io4edge_client.core as core
+import io4edge_client
 import argparse
 
 def progress_callback(progress):
@@ -14,7 +14,7 @@ def main():
     )
     args = parser.parse_args()
 
-    core_client = core.new_core_client(args.addr)
+    core_client = io4edge_client.CoreClient(args.addr)
 
     # Read in file
     with open(args.file, "rb") as f:
