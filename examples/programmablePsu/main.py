@@ -7,7 +7,7 @@ import time
 
 def main():
     parser = argparse.ArgumentParser(
-        description="demo for values() function of programmable PSU client"
+        description="demo for basic function of programmable PSU client"
     )
     parser.add_argument(
         "addr", help="MDNS address or IP:Port of the function block", type=str
