@@ -26,14 +26,10 @@ def main():
     ts = timestamp_pb2.Timestamp()
     ts.GetCurrentTime()
     
-    new_calib = psu.Pb.CalibrationValues(
-        voltage_offset=0.01,
-        current_offset=0.002,
-        voltage_gain=1.001, 
-        current_gain=0.999,
-        calibration_date=ts
-    )
-    psu_client.set_calibration(new_calib)
+    calib.dac_voffs = 0.01
+    calib.dac_vgain = 1.001
+    calib.calibration_date.CopyFrom(ts)
+    psu_client.set_calibration(calib)
 
     calib = psu_client.get_calibration()
     print(f"New Calibration: {calib}")

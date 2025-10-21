@@ -20,7 +20,10 @@ class Client(ClientConnection):
     def set_calibration(self, calib: Pb.CalibrationValues):
         """
         Upload the calibration to the programmable PSU.
-        calib contains voltage_offset, current_offset, voltage_gain, current_gain and calibration_date.
+        calib contains values for 
+        * PSU control: dac_voffs, dac_vgain, dac_coffs, dac_cgain.
+        * ADC measurement: adc_vout_offs, adc_vout_gain, adc_vsense_offs, adc_vsense_gain, adc_coffs, adc_cgain.
+        * Calibration date
         The calibration values are saved persistent in the device and are applied immediately.
         @param calib: calibration to upload
         @raises RuntimeError: if the command fails
