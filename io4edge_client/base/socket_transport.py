@@ -3,7 +3,7 @@ import socket
 import struct
 import select
 
-from io4edge_client.base.connections import ClientConnection
+from io4edge_client.base.connections import ClientConnection, must_be_connected
 from io4edge_client.base.logging import io4edge_client_logger
 
 logger = io4edge_client_logger(__name__)
@@ -38,12 +38,19 @@ class SocketTransport(ClientConnection):
     def close(self):
         # overrided from Connection
         if self.connected:
+            try:
+                # Shutdown the socket first to interrupt any pending operations
+                self._socket.shutdown(socket.SHUT_RDWR)
+            except OSError:
+                # Socket might already be closed/disconnected
+                pass
             self._socket.close()
             self._socket = None
             logger.info(f"Disconnected from {self._host}:{self._port}")
         else:
             logger.warning(f"Socket to {self._host}:{self._port} already disconnected")
 
+    @must_be_connected
     def write(self, data: bytes) -> int:
         """
         Send the data as an io4edge message to the server
@@ -51,6 +58,7 @@ class SocketTransport(ClientConnection):
         hdr = struct.pack("<HL", 0xEDFE, len(data))
         return self._socket.sendall(hdr + data)
 
+    @must_be_connected
     def read(self, timeout) -> bytes:
         """
         Wait for next io4edge message from server.
@@ -58,22 +66,38 @@ class SocketTransport(ClientConnection):
         If timeout is not None, raise TimeoutError if no message is received within timeout seconds.
         """
         if timeout is not None:
-            ready = select.select([self._socket], [], [], timeout)
-            if not ready[0]:
+            ready = select.select([self._socket], [], [self._socket], timeout)
+            if ready[2]:  # Exception occurred
+                raise ConnectionError("Socket error detected")
+            if not ready[0]:  # No data available
                 raise TimeoutError("timeout")
 
-        hdr = self._rcv_all(6)
+        hdr = self._rcv_all(6, timeout)
         if hdr[0:2] == b"\xfe\xed":
             len = struct.unpack("<L", hdr[2:6])[0]
-            data = self._rcv_all(len)
+            data = self._rcv_all(len, timeout)
             return data
         raise RuntimeError("bad magic")
 
-    def _rcv_all(self, data_len: int) -> bytes:
+    @must_be_connected
+    def _rcv_all(self, data_len: int, timeout=None) -> bytes:
         remaining = data_len
         buf = bytearray()
-        while remaining > 0:
-            data = self._socket.recv(remaining)
-            buf.extend(data)
-            remaining -= len(data)
+
+        # Set socket timeout if specified
+        original_timeout = self._socket.gettimeout()
+        if timeout is not None:
+            self._socket.settimeout(timeout)
+
+        try:
+            while remaining > 0:
+                data = self._socket.recv(remaining)
+                if not data:  # Socket closed
+                    raise ConnectionError("Socket closed during recv")
+                buf.extend(data)
+                remaining -= len(data)
+        finally:
+            # Restore original timeout
+            self._socket.settimeout(original_timeout)
+
         return buf

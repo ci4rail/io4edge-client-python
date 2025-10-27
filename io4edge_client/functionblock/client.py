@@ -53,8 +53,8 @@ class Client(ClientConnection):
         After calling this method, the object is no longer usable.
         """
         self._read_thread_stop = True
-        self._read_thread_id.join()
-        self._client.close()
+        self._client.close()  # This closes the socket, which will interrupt the read
+        self._read_thread_id.join()  # Thread should exit when socket operations fail
 
     @connectable
     def upload_configuration(self, fs_cmd):
@@ -216,9 +216,17 @@ class Client(ClientConnection):
         while not self._read_thread_stop:
             msg = FbPb.Response()
             try:
-                self._client.read_msg(msg, timeout=1)  # yield to other threads
+                # Normal timeout - socket closure will interrupt immediately via exception
+                self._client.read_msg(msg, 1.0)  # 1 second is fine since exceptions provide immediate exit
             except TimeoutError:
+                # Only exit on timeout if explicitly told to stop
+                if self._read_thread_stop:
+                    break
                 continue
+            except (ConnectionError, ConnectionAbortedError,
+                    ConnectionResetError, OSError, RuntimeError):
+                # Socket was closed, exit thread immediately
+                break
 
             if msg.WhichOneof("type") == "stream":
                 self._feed_stream(msg.stream)
