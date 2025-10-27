@@ -16,5 +16,12 @@
 	// "remoteUser": "root"
 	"runArgs": [
 		"--network=host"
-	]
+	],
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"tamasfe.even-better-toml"
+			]
+		}
+	}
 }
