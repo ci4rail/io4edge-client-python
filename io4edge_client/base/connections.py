@@ -28,7 +28,11 @@ def connectable(func):
 
 def must_be_connected(func):
     """Decorator to check if the connection is established before executing the method.
-    Does nothing if not connected.
+
+    Raises
+    ------
+    ConnectionError
+        If the client is not connected.
     """
 
     @wraps(func)
