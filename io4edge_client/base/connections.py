@@ -26,6 +26,24 @@ def connectable(func):
     return connect
 
 
+def must_be_connected(func):
+    """Decorator to check if the connection is established before executing the method.
+
+    Raises
+    ------
+    ConnectionError
+        If the client is not connected.
+    """
+
+    @wraps(func)
+    def check_connection(self, *args, **kwargs):
+        if self.connected:
+            return func(self, *args, **kwargs)
+        else:
+            raise ConnectionError("Client is not connected")
+    return check_connection
+
+
 class AbstractConnection(ABC):
 
     @property
