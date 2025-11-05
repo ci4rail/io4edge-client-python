@@ -3,6 +3,7 @@ import threading
 from collections import deque
 from io4edge_client.base import Client as BaseClient
 from io4edge_client.base.connections import ClientConnection, connectable
+from io4edge_client.base.logging import io4edge_client_logger
 from ..util.any import pb_any_unpack
 from io4edge_client.base.logging import io4edge_client_logger
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
@@ -21,6 +22,10 @@ class Client(ClientConnection):
     """
 
     def __init__(self, service: str, addr: str, command_timeout=5, connect=True):
+        self._logger = io4edge_client_logger("functionblock.Client")
+        self._logger.debug(f"Initializing functionblock client for "
+                           f"service='{service}', addr='{addr}', "
+                           f"timeout={command_timeout}")
         super().__init__(BaseClient(service, addr, connect=connect))
         self._stream_queue_mutex = (
             threading.Lock()
@@ -39,6 +44,7 @@ class Client(ClientConnection):
             self.open()
 
     def open(self):
+        self._logger.debug("Opening functionblock client connection")
         if not self.connected:
             self._client.open()
             self._read_thread_stop = False
@@ -46,6 +52,8 @@ class Client(ClientConnection):
                 target=self._read_thread, daemon=True
             )
             self._read_thread_id.start()
+            self._logger.info("Functionblock client connection opened and "
+                              "read thread started")
 
     @property
     def connected(self):
@@ -56,9 +64,11 @@ class Client(ClientConnection):
         Close the connection to the function block, terminate read thread.
         After calling this method, the object is no longer usable.
         """
+        self._logger.debug("Closing functionblock client connection")
         self._read_thread_stop = True
         self._client.close()  # This closes the socket, which will interrupt the read
         self._read_thread_id.join()  # Thread should exit when socket operations fail
+        self._logger.info("Functionblock client connection closed")
 
     @connectable
     def upload_configuration(self, fs_cmd):
@@ -68,12 +78,14 @@ class Client(ClientConnection):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
+        self._logger.debug("Uploading configuration to functionblock")
         fs_any = AnyPb.Any()
         fs_any.Pack(fs_cmd)
 
         fb_cmd = FbPb.Command()
         fb_cmd.Configuration.functionSpecificConfigurationSet.CopyFrom(fs_any)
         self._command(fb_cmd)
+        self._logger.info("Configuration uploaded successfully")
 
     @connectable
     def download_configuration(self, fs_cmd, fs_response):
@@ -84,6 +96,7 @@ class Client(ClientConnection):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
+        self._logger.debug("Downloading configuration from functionblock")
         fs_any = AnyPb.Any()
         fs_any.Pack(fs_cmd)
 
@@ -93,6 +106,7 @@ class Client(ClientConnection):
         pb_any_unpack(
             fb_res.Configuration.functionSpecificConfigurationGet, fs_response
         )
+        self._logger.info("Configuration downloaded successfully")
 
     @connectable
     def describe(self, fs_cmd, fs_response):
@@ -159,6 +173,7 @@ class Client(ClientConnection):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
+        self._logger.debug("Starting stream from functionblock")
         fs_any = AnyPb.Any()
         fs_any.Pack(fs_config)
 
@@ -167,6 +182,7 @@ class Client(ClientConnection):
         fb_cmd.streamControl.start.CopyFrom(fb_config)
 
         self._command(fb_cmd)
+        self._logger.info("Stream started successfully")
 
     def stop_stream(self):
         """
@@ -174,10 +190,12 @@ class Client(ClientConnection):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
+        self._logger.debug("Stopping stream from functionblock")
         fb_cmd = FbPb.Command()
         stop = FbPb.StreamControlStop()
         fb_cmd.streamControl.stop.CopyFrom(stop)
         self._command(fb_cmd)
+        self._logger.info("Stream stopped successfully")
 
     def read_stream(self, timeout, stream_data):
         """
@@ -187,11 +205,14 @@ class Client(ClientConnection):
         @return functionblock stream meta data (deliveryTimestampUs, sequence)
         @raises TimeoutError: if no data is available within the timeout
         """
+        self._logger.debug("Reading stream data with timeout=%s", timeout)
         if not self._stream_queue_sema.acquire(timeout=timeout):
+            self._logger.warning("Stream read timeout - no data available")
             raise TimeoutError("No data available within timeout")
         with self._stream_queue_mutex:
             data = self._stream_queue.popleft()
             pb_any_unpack(data.functionSpecificStreamData, stream_data)
+            self._logger.debug("Stream data read successfully")
             return data
 
     @connectable
@@ -230,7 +251,7 @@ class Client(ClientConnection):
             except (ConnectionError, ConnectionAbortedError,
                     ConnectionResetError, RuntimeError) as e:
                 # Socket was closed, exit thread immediately
-                logger.debug(f"Read thread exiting due to connection error: {e}")
+                logger.debug(f"Read thread exiting due to connection drop: {e}")
                 break
 
             if msg.WhichOneof("type") == "stream":

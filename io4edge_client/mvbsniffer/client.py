@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 from io4edge_client.base.connections import ClientConnectionStream, connectable
+from io4edge_client.base.logging import io4edge_client_logger
 from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.mvbSniffer.python.mvbSniffer.v1.mvbSniffer_pb2 as Pb
 import io4edge_client.api.mvbSniffer.python.mvbSniffer.v1.telegram_pb2 as TelegramPb
@@ -13,6 +14,8 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, TelegramPb.TelegramCo
     """
 
     def __init__(self, addr: str, command_timeout=5, connect=True):
+        self._logger = io4edge_client_logger("mvbsniffer.Client")
+        self._logger.debug("Initializing mvbsniffer client")
         super().__init__(FbClient("_io4edge_mvbSniffer._tcp", addr, command_timeout, connect=connect))
 
     def _create_stream_data(self) -> TelegramPb.TelegramCollection:

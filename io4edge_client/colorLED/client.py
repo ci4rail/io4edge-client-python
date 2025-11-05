@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 from io4edge_client.base.connections import ClientConnection, connectable
+from io4edge_client.base.logging import io4edge_client_logger
 from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.colorLED.python.colorLED.v1alpha1.colorLED_pb2 as Pb
 
@@ -12,6 +13,8 @@ class Client(ClientConnection):
     """
 
     def __init__(self, addr: str, command_timeout=5, connect=False):
+        self._logger = io4edge_client_logger("colorLED.Client")
+        self._logger.debug("Initializing colorLED client")
         super().__init__(FbClient(
             "_io4edge_colorLED._tcp", addr, command_timeout, connect=connect
         ))

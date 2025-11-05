@@ -1,4 +1,5 @@
 from io4edge_client.base import Client as BaseClient
+from io4edge_client.base.logging import io4edge_client_logger
 import io4edge_client.api.io4edge.python.core_api.v1alpha2.io4edge_core_api_pb2 as Pb
 from io4edge_client.base.connections import ClientConnection, connectable
 from ..types import FirmwareIdentification, HardwareIdentification
@@ -13,6 +14,9 @@ class PbCoreClient(ClientConnection):
     """
 
     def __init__(self, addr: str, command_timeout=5, connect=True):
+        self._logger = io4edge_client_logger("core.PbCoreClient")
+        self._logger.debug("Initializing core client for addr='%s', "
+                           "timeout=%s", addr, command_timeout)
         self._addr = addr
         self._command_timeout = command_timeout
         super().__init__(BaseClient("_io4edge-core._tcp", self._addr, connect=connect))
@@ -44,9 +48,11 @@ class PbCoreClient(ClientConnection):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
+        self._logger.debug("Identifying hardware for core device")
         cmd = Pb.CoreCommand(id=Pb.CommandId.IDENTIFY_HARDWARE)
         response = Pb.CoreResponse()
         self.command(cmd, response)
+        self._logger.info("Hardware identified successfully")
         return HardwareIdentification(
             response.identify_hardware.root_article,
             response.identify_hardware.major_version,

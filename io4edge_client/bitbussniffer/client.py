@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 from io4edge_client.base.connections import ClientConnectionStream, connectable
+from io4edge_client.base.logging import io4edge_client_logger
 from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.bitbusSniffer.python.bitbusSniffer.v1.bitbusSniffer_pb2 as Pb
 
@@ -12,6 +13,8 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
     """
 
     def __init__(self, addr: str, command_timeout=5):
+        self._logger = io4edge_client_logger("bitbussniffer.Client")
+        self._logger.debug("Initializing bitbussniffer client")
         super().__init__(FbClient("_io4edge_bitbusSniffer._tcp", addr, command_timeout))
 
     def _create_stream_data(self) -> Pb.StreamData:
@@ -30,4 +33,5 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
+        self._logger.debug("Uploading configuration for bitbussniffer")
         self._client.upload_configuration(config)
