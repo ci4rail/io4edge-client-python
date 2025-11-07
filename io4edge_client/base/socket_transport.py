@@ -55,7 +55,8 @@ class SocketTransport(ClientConnection):
                 self._socket.shutdown(socket.SHUT_RDWR)
             except OSError:
                 # Socket might already be closed/disconnected
-                pass
+                logger.warning("Socket to %s:%s disconnected during shutdown",
+                               self._host, self._port)
             self._socket.close()
             self._socket = None
             logger.info("Disconnected from %s:%s", self._host, self._port)

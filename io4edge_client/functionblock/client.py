@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 import threading
 from collections import deque
+from venv import logger
 from io4edge_client.base import Client as BaseClient
 from io4edge_client.base.connections import ClientConnection, connectable
 from io4edge_client.base.logging import io4edge_client_logger
@@ -247,6 +248,7 @@ class Client(ClientConnection):
                 # Only exit on timeout if explicitly told to stop
                 if self._read_thread_stop:
                     break
+                logger.warning("Stream read timeout - no data available")
                 continue
             except (ConnectionError, ConnectionAbortedError,
                     ConnectionResetError, RuntimeError) as e:
@@ -255,10 +257,13 @@ class Client(ClientConnection):
                 break
 
             if msg.WhichOneof("type") == "stream":
+                logger.debug("Received stream message")
                 self._feed_stream(msg.stream)
             else:
+                logger.debug("Received command response")
                 self._cmd_response = msg
                 self._cmd_event.set()
+        logger.info("Read thread exiting")
 
     def _feed_stream(self, stream_data):
         with self._stream_queue_mutex:
