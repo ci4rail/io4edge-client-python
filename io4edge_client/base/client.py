@@ -3,6 +3,7 @@ from zeroconf import Zeroconf
 
 from io4edge_client.base.connections import ClientConnection, connectable
 from .socket_transport import SocketTransport
+import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
 
 
 class Client(ClientConnection):
@@ -30,14 +31,19 @@ class Client(ClientConnection):
         self._transport.write(data)
 
     @connectable
-    def read_msg(self, msg, timeout):
+    def read_msg(self, msg, timeout=None):
         """
         Wait for next message from server. Unmarshall it to msg.
         Pass msg as a protobuf message type with the expected type.
         If timeout is not None, raise TimeoutError if no message is received within timeout seconds.
         """
         data = self._transport.read(timeout)
-        msg.ParseFromString(bytes(data))
+        try:
+            msg.ParseFromString(bytes(data))
+        except Exception as e:
+            # msg2 = FbPb.Response()
+            # msg2.ParseFromString(bytes(data))
+            raise RuntimeError("Failed to parse message") from e
 
     @staticmethod
     def _net_address_split(addr: str):

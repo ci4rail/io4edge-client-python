@@ -4,8 +4,12 @@ from collections import deque
 from io4edge_client.base import Client as BaseClient
 from io4edge_client.base.connections import ClientConnection, connectable
 from ..util.any import pb_any_unpack
+from io4edge_client.base.logging import io4edge_client_logger
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
 import google.protobuf.any_pb2 as AnyPb
+
+
+logger = io4edge_client_logger(__name__)
 
 
 class Client(ClientConnection):
@@ -217,15 +221,16 @@ class Client(ClientConnection):
             msg = FbPb.Response()
             try:
                 # Normal timeout - socket closure will interrupt immediately via exception
-                self._client.read_msg(msg, 1.0)  # 1 second is fine since exceptions provide immediate exit
+                self._client.read_msg(msg, 1)  # 1 second is fine since exceptions provide immediate exit
             except TimeoutError:
                 # Only exit on timeout if explicitly told to stop
                 if self._read_thread_stop:
                     break
                 continue
             except (ConnectionError, ConnectionAbortedError,
-                    ConnectionResetError, OSError, RuntimeError):
+                    ConnectionResetError, RuntimeError) as e:
                 # Socket was closed, exit thread immediately
+                logger.debug(f"Read thread exiting due to connection error: {e}")
                 break
 
             if msg.WhichOneof("type") == "stream":
