@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
 import threading
 from collections import deque
-from venv import logger
 from io4edge_client.base import Client as BaseClient
 from io4edge_client.base.connections import ClientConnection, connectable
 from io4edge_client.base.logging import io4edge_client_logger
+from io4edge_client.util.exceptions import CommandTemporaryUnavailableError
 from ..util.any import pb_any_unpack
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
 import google.protobuf.any_pb2 as AnyPb
@@ -52,7 +52,7 @@ class Client(ClientConnection):
                 target=self._read_thread, daemon=True
             )
             self._read_thread_id.start()
-            self._logger.info("Functionblock client connection opened and "
+            self._logger.debug("Functionblock client connection opened and "
                               "read thread started")
 
     @property
@@ -68,7 +68,7 @@ class Client(ClientConnection):
         self._read_thread_stop = True
         self._client.close()  # This closes the socket, which will interrupt the read
         self._read_thread_id.join()  # Thread should exit when socket operations fail
-        self._logger.info("Functionblock client connection closed")
+        self._logger.debug("Functionblock client connection closed")
 
     @connectable
     def upload_configuration(self, fs_cmd):
@@ -232,7 +232,9 @@ class Client(ClientConnection):
 
             self._cmd_context += 1
 
-            if response.status != FbPb.Status.OK:
+            if response.status == FbPb.Status.TEMPORARILY_UNAVAILABLE:
+                raise CommandTemporaryUnavailableError(f"Out of resources: {response.error}")
+            elif response.status != FbPb.Status.OK:
                 status_str = FbPb.Status.Name(response.status)
                 raise RuntimeError(f"Command failed: {status_str}: {response.error}")
             return response

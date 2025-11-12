@@ -89,9 +89,9 @@ class SocketTransport(ClientConnection):
                                       timeout)
             except OSError as e:
                 # Socket was closed or became invalid
-                raise ConnectionError("Socket error during select: ", e)
+                raise ConnectionError("socket closed or invalid during select: ", e)
             if ready[2]:  # Exception occurred
-                raise ConnectionError("Socket error detected")
+                raise ConnectionError("socket connection aborted")
             if not ready[0]:  # No data available
                 logger.debug("No data available on socket read after %s seconds", timeout)
                 raise TimeoutError("Timeout")
