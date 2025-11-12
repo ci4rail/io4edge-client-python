@@ -6,7 +6,6 @@ from io4edge_client.base import Client as BaseClient
 from io4edge_client.base.connections import ClientConnection, connectable
 from io4edge_client.base.logging import io4edge_client_logger
 from ..util.any import pb_any_unpack
-from io4edge_client.base.logging import io4edge_client_logger
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
 import google.protobuf.any_pb2 as AnyPb
 
