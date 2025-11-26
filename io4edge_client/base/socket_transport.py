@@ -86,7 +86,6 @@ class SocketTransport(ClientConnection):
         If timeout is not None, raise TimeoutError if no message is received
         within timeout seconds.
         """
-        assert self._socket is not None  # Should be guaranteed by decorator
         if timeout is not None:
             try:
                 ready = select.select([self._socket], [], [self._socket],
