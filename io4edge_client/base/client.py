@@ -41,8 +41,6 @@ class Client(ClientConnection):
         try:
             msg.ParseFromString(bytes(data))
         except Exception as e:
-            # msg2 = FbPb.Response()
-            # msg2.ParseFromString(bytes(data))
             raise RuntimeError("Failed to parse message") from e
 
     @staticmethod

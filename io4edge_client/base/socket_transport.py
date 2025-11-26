@@ -65,14 +65,18 @@ class SocketTransport(ClientConnection):
                            self._host, self._port)
 
     @must_be_connected
-    def write(self, data: bytes) -> int:
+    def write(self, data: bytes):
         """
         Send the data as an io4edge message to the server
         """
-        assert self._socket is not None  # Should be guaranteed by decorator
-        hdr = struct.pack("<HL", 0xEDFE, len(data))
-        result = self._socket.sendall(hdr + data)
-        return 0 if result is None else result
+        if self._socket is not None:  # Should be guaranteed by decorator, but pylance complains
+            hdr = struct.pack("<HL", 0xEDFE, len(data))
+            try:
+                self._socket.sendall(hdr + data)
+            except OSError as e:
+                raise ConnectionError("Socket error during sendall") from e
+        else:
+            raise ConnectionError("Socket is not connected")
 
     @must_be_connected
     def read(self, timeout) -> bytes:
@@ -89,7 +93,7 @@ class SocketTransport(ClientConnection):
                                       timeout)
             except OSError as e:
                 # Socket was closed or became invalid
-                raise ConnectionError("socket closed or invalid during select: ", e)
+                raise ConnectionError("socket error during select") from e
             if ready[2]:  # Exception occurred
                 raise ConnectionError("socket connection aborted")
             if not ready[0]:  # No data available
