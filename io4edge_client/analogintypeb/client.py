@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 from io4edge_client.base.connections import ClientConnectionStream, connectable
+from io4edge_client.base.logging import io4edge_client_logger
 from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.analogInTypeB.python.analogInTypeB.v1.analogInTypeB_pb2 as Pb
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
@@ -13,6 +14,9 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
     """
 
     def __init__(self, addr: str, command_timeout=5, connect=True):
+        self._logger = io4edge_client_logger("analogintypeb.Client")
+        self._logger.debug("Initializing analogInTypeB client for addr='%s', "
+                           "timeout=%s", addr, command_timeout)
         super().__init__(FbClient("_io4edge_analogInTypeB._tcp", addr, command_timeout, connect=connect))
 
     def _create_stream_data(self) -> Pb.StreamData:
@@ -31,8 +35,11 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
+        self._logger.debug("Starting stream for analogInTypeB with "
+                           "channel_mask=%s", channel_mask)
         config = Pb.StreamControlStart(channelMask=channel_mask)
         super().start_stream(config, fb_config)
+        self._logger.info("Stream started successfully for analogInTypeB")
 
     @connectable
     def upload_configuration(self, config: Pb.ConfigurationSet):
@@ -42,7 +49,10 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
+        self._logger.debug("Uploading configuration to analogInTypeB")
         self._client.upload_configuration(config)
+        self._logger.info("Configuration uploaded successfully to "
+                          "analogInTypeB")
 
     @connectable
     def download_configuration(self) -> Pb.ConfigurationGetResponse:
@@ -52,8 +62,11 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
+        self._logger.debug("Downloading configuration from analogInTypeB")
         fs_response = Pb.ConfigurationGetResponse()
         self._client.download_configuration(Pb.ConfigurationGet(), fs_response)
+        self._logger.info("Configuration downloaded successfully from "
+                          "analogInTypeB")
         return fs_response
 
     @connectable

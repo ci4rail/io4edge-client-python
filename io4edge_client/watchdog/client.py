@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 from io4edge_client.base.connections import ClientConnection, connectable
+from io4edge_client.base.logging import io4edge_client_logger
 from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.watchdog.python.watchdog.v1.watchdog_pb2 as Pb
 
@@ -12,6 +13,8 @@ class Client(ClientConnection):
     """
 
     def __init__(self, addr: str, command_timeout=5, connect=False):
+        self._logger = io4edge_client_logger("watchdog.Client")
+        self._logger.debug("Initializing watchdog client")
         super().__init__(FbClient("_io4edge_watchdog._tcp", addr, command_timeout, connect=connect))
 
     @connectable

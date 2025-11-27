@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 from io4edge_client.base.connections import ClientConnectionStream, connectable
+from io4edge_client.base.logging import io4edge_client_logger
 from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.analogInTypeA.python.analogInTypeA.v1alpha1.analogInTypeA_pb2 as Pb
 
@@ -12,6 +13,9 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
     """
 
     def __init__(self, addr: str, command_timeout=5, connect=True):
+        self._logger = io4edge_client_logger("analogintypea.Client")
+        self._logger.debug("Initializing analogInTypeA client for addr='%s', "
+                           "timeout=%s", addr, command_timeout)
         super().__init__(FbClient("_io4edge_analogInTypeA._tcp", addr, command_timeout, connect=connect))
 
     def _create_stream_data(self) -> Pb.StreamData:
@@ -30,7 +34,10 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
+        self._logger.debug("Uploading configuration to analogInTypeA")
         self._client.upload_configuration(config)
+        self._logger.info("Configuration uploaded successfully to "
+                          "analogInTypeA")
 
     @connectable
     def download_configuration(self) -> Pb.ConfigurationGetResponse:
@@ -40,8 +47,11 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
+        self._logger.debug("Downloading configuration from analogInTypeA")
         fs_response = Pb.ConfigurationGetResponse()
         self._client.download_configuration(Pb.ConfigurationGet(), fs_response)
+        self._logger.info("Configuration downloaded successfully from "
+                          "analogInTypeA")
         return fs_response
 
     @connectable
@@ -53,7 +63,10 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
+        self._logger.debug("Reading current analog input value")
         fs_cmd = Pb.FunctionControlGet()
         fs_response = Pb.FunctionControlGetResponse()
         self._client.function_control_get(fs_cmd, fs_response)
-        return fs_response.value
+        value = fs_response.value
+        self._logger.debug("Read analog value: %s", value)
+        return value

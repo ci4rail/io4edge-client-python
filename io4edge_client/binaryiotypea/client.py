@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 from io4edge_client.base.connections import ClientConnectionStream, connectable
+from io4edge_client.base.logging import io4edge_client_logger
 from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.binaryIoTypeA.python.binaryIoTypeA.v1alpha1.binaryIoTypeA_pb2 as Pb
 
@@ -12,6 +13,8 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
     """
 
     def __init__(self, addr: str, command_timeout=5, connect=True):
+        self._logger = io4edge_client_logger("binaryiotypea.Client")
+        self._logger.debug("Initializing binaryiotypea client")
         super().__init__(FbClient("_io4edge_binaryIoTypeA._tcp", addr, command_timeout, connect=connect))
 
     def _create_stream_data(self) -> Pb.StreamData:
@@ -30,7 +33,10 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
+        self._logger.debug("Uploading configuration for binaryiotypea")
         self._client.upload_configuration(config)
+        self._logger.info("Configuration uploaded successfully for "
+                          "binaryiotypea")
 
     @connectable
     def download_configuration(self) -> Pb.ConfigurationGetResponse:
@@ -40,8 +46,11 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
+        self._logger.debug("Downloading configuration from binaryiotypea")
         fs_response = Pb.ConfigurationGetResponse()
         self._client.download_configuration(Pb.ConfigurationGet(), fs_response)
+        self._logger.info("Configuration downloaded successfully from "
+                          "binaryiotypea")
         return fs_response
 
     @connectable
@@ -52,8 +61,11 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
+        self._logger.debug("Getting description from binaryiotypea")
         fs_response = Pb.ConfigurationDescribeResponse()
         self._client.describe(Pb.ConfigurationDescribe(), fs_response)
+        self._logger.info("Description retrieved successfully from "
+                          "binaryiotypea")
         return fs_response
 
     @connectable
@@ -65,10 +77,14 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
+        self._logger.debug("Setting output channel %s to state %s",
+                           channel, state)
         fs_cmd = Pb.FunctionControlSet()
         fs_cmd.single.channel = channel
         fs_cmd.single.state = state
         self._client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
+        self._logger.info("Output channel %s set to %s successfully",
+                          channel, state)
 
     @connectable
     def set_all_outputs(self, states: int, mask: int):
@@ -79,10 +95,14 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
+        self._logger.debug("Setting all outputs with states=0x%x, mask=0x%x",
+                           states, mask)
         fs_cmd = Pb.FunctionControlSet()
         fs_cmd.all.values = states
         fs_cmd.all.mask = mask
         self._client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
+        self._logger.info("All outputs set successfully with states=0x%x, "
+                          "mask=0x%x", states, mask)
 
     @connectable
     def exit_error_state(self):
@@ -95,9 +115,11 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
+        self._logger.debug("Attempting to exit error state")
         fs_cmd = Pb.FunctionControlSet()
         fs_cmd.exit_error.CopyFrom(Pb.SetExitError())
         self._client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
+        self._logger.info("Exit error state command sent successfully")
 
     @connectable
     def input(self, channel: int) -> bool:
@@ -109,11 +131,14 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
+        self._logger.debug("Reading input state for channel %s", channel)
         fs_cmd = Pb.FunctionControlGet()
         fs_cmd.single.channel = channel
         fs_response = Pb.FunctionControlGetResponse()
         self._client.function_control_get(fs_cmd, fs_response)
-        return fs_response.single.state
+        state = fs_response.single.state
+        self._logger.debug("Input channel %s state: %s", channel, state)
+        return state
 
     @connectable
     def all_inputs(self, mask: int) -> int:
@@ -127,8 +152,11 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
+        self._logger.debug("Reading all inputs with mask=0x%x", mask)
         fs_cmd = Pb.FunctionControlGet()
         fs_cmd.all.mask = mask
         fs_response = Pb.FunctionControlGetResponse()
         self._client.function_control_get(fs_cmd, fs_response)
-        return fs_response.all.inputs
+        inputs = fs_response.all.inputs
+        self._logger.debug("All inputs state: 0x%x", inputs)
+        return inputs

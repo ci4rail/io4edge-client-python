@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 from io4edge_client.base.connections import ClientConnection, connectable
+from io4edge_client.base.logging import io4edge_client_logger
 from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.binaryIoTypeD.python.binaryIoTypeD.v1.binaryIoTypeD_pb2 as Pb
 
@@ -12,6 +13,8 @@ class Client(ClientConnection):
     """
 
     def __init__(self, addr: str, command_timeout=5, connect=True):
+        self._logger = io4edge_client_logger("binaryiotyped.Client")
+        self._logger.debug("Initializing binaryiotyped client")
         super().__init__(FbClient("_io4edge_binaryIoTypeD._tcp", addr, command_timeout, connect=connect))
 
     @connectable
@@ -22,7 +25,9 @@ class Client(ClientConnection):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
+        self._logger.debug("Uploading configuration to binaryiotyped")
         self._client.upload_configuration(config)
+        self._logger.info("Configuration uploaded successfully to binaryiotyped")
 
     @connectable
     def download_configuration(self) -> Pb.ConfigurationGetResponse:
@@ -38,6 +43,7 @@ class Client(ClientConnection):
 
     @connectable
     def set_output(self, channel: int, state: bool):
+        self._logger.debug("Setting output channel %s to state %s", channel, state)
         """
         Set the state of a single output.
         @param channel: channel number
@@ -49,6 +55,7 @@ class Client(ClientConnection):
         fs_cmd.single.channel = channel
         fs_cmd.single.state = state
         self._client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
+        self._logger.info("Output channel %s set to %s successfully", channel, state)
 
     @connectable
     def set_outputs(self, states: int, mask: int):
