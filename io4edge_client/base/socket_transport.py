@@ -2,6 +2,7 @@
 import socket
 import struct
 import select
+import threading
 from typing import Optional
 
 from io4edge_client.base.connections import ClientConnection, must_be_connected
@@ -15,6 +16,9 @@ class SocketTransport(ClientConnection):
         self._host = host
         self._port = port
         self._socket: Optional[socket.socket] = None
+        # Thread-safe connection management with reference counting
+        self._connection_lock = threading.RLock()  # Reentrant lock
+        self._connection_ref_count = 0
 
         super().__init__(self)
 
@@ -22,46 +26,65 @@ class SocketTransport(ClientConnection):
             self.open()
 
     def open(self):
-        # overrided from Connection
-        if not self.connected:
-            self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self._socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-            self._socket.connect((self._host, self._port))
-            logger.info("Connected to %s:%s", self._host, self._port)
-        else:
-            logger.warning("Socket to %s:%s already connected",
+        """Open connection with reference counting for thread safety."""
+        with self._connection_lock:
+            self._connection_ref_count += 1
+            logger.debug("Socket connection reference count increased to %d",
+                        self._connection_ref_count)
+
+            if self._socket is None:
+                logger.debug("Opening socket connection to %s:%s",
                            self._host, self._port)
+                self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self._socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+                self._socket.connect((self._host, self._port))
+                logger.info("Connected to %s:%s", self._host, self._port)
+            else:
+                logger.debug("Socket already connected to %s:%s, "
+                           "reference count increased", self._host, self._port)
 
     @property
     def connected(self):
-        # overrided from Connection
-        if self._socket is None:
-            return False
-        # Check if socket is actually still valid
-        try:
-            # Try to get socket option - will fail if socket is closed
-            self._socket.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
-            return True
-        except OSError:
-            # Socket is closed or invalid
-            self._socket = None
-            return False
+        """Check connection status with thread safety."""
+        with self._connection_lock:
+            if self._socket is None:
+                return False
+            # Check if socket is actually still valid
+            try:
+                # Try to get socket option - will fail if socket is closed
+                self._socket.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
+                return True
+            except OSError:
+                # Socket is closed or invalid - reset state
+                self._socket = None
+                self._connection_ref_count = 0
+                return False
 
     def close(self):
-        # overrided from Connection
-        if self._socket is not None:
-            try:
-                # Shutdown the socket first to interrupt any pending operations
-                self._socket.shutdown(socket.SHUT_RDWR)
-            except OSError:
-                # Socket might already be closed/disconnected
-                logger.warning("Socket to %s:%s disconnected during shutdown",
-                               self._host, self._port)
-            self._socket.close()
-            self._socket = None
-            logger.info("Disconnected from %s:%s", self._host, self._port)
-        else:
-            logger.warning("Socket to %s:%s already disconnected",
+        """Close connection with reference counting for thread safety."""
+        with self._connection_lock:
+            if self._connection_ref_count > 0:
+                self._connection_ref_count -= 1
+                logger.debug("Socket connection reference count decreased to %d",
+                           self._connection_ref_count)
+
+            # Only actually close when no more references and socket is open
+            if self._connection_ref_count == 0 and self._socket is not None:
+                try:
+                    # Shutdown first to interrupt pending operations
+                    self._socket.shutdown(socket.SHUT_RDWR)
+                except OSError:
+                    # Socket might already be closed/disconnected
+                    logger.warning("Socket to %s:%s disconnected during shutdown",
+                                 self._host, self._port)
+                self._socket.close()
+                self._socket = None
+                logger.info("Disconnected from %s:%s", self._host, self._port)
+            elif self._connection_ref_count > 0:
+                logger.debug("Socket still in use by %d references, keeping open",
+                           self._connection_ref_count)
+            else:
+                logger.debug("Socket to %s:%s already disconnected",
                            self._host, self._port)
 
     @must_be_connected
