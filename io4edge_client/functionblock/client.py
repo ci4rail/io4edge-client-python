@@ -40,35 +40,62 @@ class Client(ClientConnection):
         self._cmd_context = 0  # sequence number for command context
         self._cmd_timeout = command_timeout
         self._read_thread_stop = True
+        # Thread-safe connection management with reference counting
+        self._connection_lock = threading.RLock()  # Reentrant lock for nested calls
+        self._connection_ref_count = 0
+        self._connection_opened = False
         if connect:
             self.open()
 
     def open(self):
-        self._logger.debug("Opening functionblock client connection")
-        if not self.connected:
-            self._client.open()
-            self._read_thread_stop = False
-            self._read_thread_id = threading.Thread(
-                target=self._read_thread, daemon=True
-            )
-            self._read_thread_id.start()
-            self._logger.debug("Functionblock client connection opened and "
-                              "read thread started")
+        """Open connection with reference counting for thread safety."""
+        with self._connection_lock:
+            self._connection_ref_count += 1
+            self._logger.debug("Connection reference count increased to %d",
+                             self._connection_ref_count)
+
+            if not self._connection_opened:
+                self._logger.debug("Opening functionblock client connection")
+                self._client.open()
+                self._read_thread_stop = False
+                self._read_thread_id = threading.Thread(
+                    target=self._read_thread, daemon=True
+                )
+                self._read_thread_id.start()
+                self._connection_opened = True
+                self._logger.debug("Functionblock client connection opened and "
+                                  "read thread started")
+            else:
+                self._logger.debug("Connection already open, reference count increased")
 
     @property
     def connected(self):
-        return self._client.connected and not self._read_thread_stop
+        with self._connection_lock:
+            return self._connection_opened and self._client.connected and not self._read_thread_stop
 
     def close(self):
         """
-        Close the connection to the function block, terminate read thread.
-        After calling this method, the object is no longer usable.
+        Decrease connection reference count and close if no more references.
+        Thread-safe implementation prevents race conditions.
         """
-        self._logger.debug("Closing functionblock client connection")
-        self._read_thread_stop = True
-        self._client.close()  # This closes the socket, which will interrupt the read
-        self._read_thread_id.join()  # Thread should exit when socket operations fail
-        self._logger.debug("Functionblock client connection closed")
+        with self._connection_lock:
+            if self._connection_ref_count > 0:
+                self._connection_ref_count -= 1
+                self._logger.debug("Connection reference count decreased to %d",
+                                 self._connection_ref_count)
+
+            # Only actually close when no more references and connection is open
+            if self._connection_ref_count == 0 and self._connection_opened:
+                self._logger.debug("Closing functionblock client connection")
+                self._read_thread_stop = True
+                self._client.close()  # This closes the socket, which will interrupt the read
+                if hasattr(self, '_read_thread_id'):
+                    self._read_thread_id.join()  # Thread should exit when socket operations fail
+                self._connection_opened = False
+                self._logger.debug("Functionblock client connection closed")
+            elif self._connection_ref_count > 0:
+                self._logger.debug("Connection still in use by %d references, keeping open",
+                                 self._connection_ref_count)
 
     @connectable
     def upload_configuration(self, fs_cmd):

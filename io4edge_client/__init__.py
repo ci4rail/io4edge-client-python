@@ -13,7 +13,7 @@ from .colorLED import Client as ColorLEDClient
 from .digiwave import Client as DigiwaveClient
 from .mvbsniffer import Client as MvbSnifferClient
 from .pixelDisplay import Client as PixelDisplayClient
-from .watchdog import Client as WatchdogClient
+# from .watchdog import Client as WatchdogClient
 
 # Import core clients
 from .core import CoreClient
@@ -36,7 +36,7 @@ __all__ = [
     "DigiwaveClient",
     "MvbSnifferClient",
     "PixelDisplayClient",
-    "WatchdogClient",
+    # "WatchdogClient",
 
     # Core clients
     "CoreClient",
