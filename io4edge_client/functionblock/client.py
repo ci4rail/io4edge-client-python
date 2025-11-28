@@ -67,7 +67,8 @@ class Client(ClientConnection):
         self._logger.debug("Closing functionblock client connection")
         self._read_thread_stop = True
         self._client.close()  # This closes the socket, which will interrupt the read
-        self._read_thread_id.join()  # Thread should exit when socket operations fail
+        if hasattr(self, '_read_thread_id'):
+            self._read_thread_id.join()  # Thread should exit when socket operations fail
         self._logger.debug("Functionblock client connection closed")
 
     @connectable
