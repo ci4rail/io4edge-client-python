@@ -2,7 +2,7 @@
 from io4edge_client.base.connections import ClientConnectionStream, connectable
 from io4edge_client.base.logging import io4edge_client_logger
 from io4edge_client.functionblock import Client as FbClient
-import io4edge_client.api.analogInTypeA.python.analogInTypeA.v1alpha1.analogInTypeA_pb2 as Pb
+import io4edge_client.api.analogInTypeA.python.analogInTypeA.v1alpha1.analogInTypeA_pb2 as Pb  # noqa: E501
 
 
 class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
@@ -12,11 +12,23 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
     @param command_timeout: timeout for commands in seconds
     """
 
-    def __init__(self, addr: str, command_timeout=5, connect=True):
+    def __init__(
+        self,
+        addr: str,
+        command_timeout: int = 5,
+        connect: bool = True
+    ) -> None:
         self._logger = io4edge_client_logger("analogintypea.Client")
-        self._logger.debug("Initializing analogInTypeA client for addr='%s', "
-                           "timeout=%s", addr, command_timeout)
-        super().__init__(FbClient("_io4edge_analogInTypeA._tcp", addr, command_timeout, connect=connect))
+        self._logger.debug(
+            "Initializing analogInTypeA client for addr='%s', timeout=%s",
+            addr, command_timeout
+        )
+        super().__init__(
+            FbClient(
+                "_io4edge_analogInTypeA._tcp", addr, command_timeout,
+                connect=connect
+            )
+        )
 
     def _create_stream_data(self) -> Pb.StreamData:
         """Create analogInTypeA-specific StreamData message"""
@@ -27,7 +39,7 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         return Pb.StreamControlStart()
 
     @connectable
-    def upload_configuration(self, config: Pb.ConfigurationSet):
+    def upload_configuration(self, config: Pb.ConfigurationSet) -> None:
         """
         Upload the configuration to the analogInTypeA functionblock.
         @param config: configuration to upload
@@ -36,8 +48,9 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         """
         self._logger.debug("Uploading configuration to analogInTypeA")
         self._client.upload_configuration(config)
-        self._logger.info("Configuration uploaded successfully to "
-                          "analogInTypeA")
+        self._logger.info(
+            "Configuration uploaded successfully to analogInTypeA"
+        )
 
     @connectable
     def download_configuration(self) -> Pb.ConfigurationGetResponse:
@@ -57,9 +70,9 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
     @connectable
     def value(self) -> float:
         """
-        read the current analog input level.
+        Read the current analog input level.
 
-        @return: current analog input level. range -1 .. +1 (for min/max voltage or current)
+        @return: current analog input level, range -1..+1 for min/max
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """

@@ -1,11 +1,71 @@
 from abc import ABC, abstractmethod
 from functools import wraps
-from typing import Tuple, Any
-import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
+from typing import Tuple, Any, Optional, Protocol
+import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb  # noqa: E501
+
+
+# Type variables are now defined inline with the new generic syntax
+
+
+class StreamingClientProtocol(Protocol):
+    """Protocol for streaming functionblock clients."""
+
+    @property
+    def connected(self) -> bool:
+        """Indicates whether the client is currently connected."""
+        ...
+
+    def open(self) -> None:
+        """Open the client connection."""
+        ...
+
+    def close(self) -> None:
+        """Close the client connection."""
+        ...
+
+    def start_stream(self, fs_config: Any, fb_config: Any) -> None:
+        """Start streaming data."""
+        ...
+
+    def stop_stream(self) -> None:
+        """Stop streaming data."""
+        ...
+
+    def read_stream(self, timeout: Optional[float], stream_data: Any) -> Any:
+        """Read next message from stream."""
+        ...
+
+    def function_control_set(self, fs_cmd: Any, fs_response: Any) -> None:
+        """Execute function control set command."""
+        ...
+
+    def function_control_get(self, fs_cmd: Any, fs_response: Any) -> None:
+        """Execute function control get command."""
+        ...
+
+    def upload_configuration(self, fs_cmd: Any) -> None:
+        """Upload configuration."""
+        ...
+
+    def download_configuration(self, fs_cmd: Any, fs_response: Any) -> None:
+        """Download configuration."""
+        ...
+
+    def describe(self, fs_cmd: Any, fs_response: Any) -> None:
+        """Describe function block configuration."""
+        ...
+
+    def write_msg(self, msg: Any) -> None:
+        """Write message to function block."""
+        ...
+
+    def read_msg(self, msg: Any, timeout: float) -> None:
+        """Read message from function block."""
+        ...
 
 
 def connectable(func):
-    """Decorator to ensure the connection is established before executing the method.
+    """Decorator to ensure connection is established before method execution.
 
     TODO:
     - Add support for async methods
@@ -27,7 +87,7 @@ def connectable(func):
 
 
 def must_be_connected(func):
-    """Decorator to check if the connection is established before executing the method.
+    """Decorator to check if connection is established before method execution.
 
     Raises
     ------
@@ -73,8 +133,10 @@ class ConnectionContextManager(AbstractConnection):
         self.close()
 
 
-class ClientConnection(ConnectionContextManager):
-    def __init__(self, client: AbstractConnection):
+class ClientConnection[ClientT: StreamingClientProtocol](
+    ConnectionContextManager
+):
+    def __init__(self, client: ClientT):
         self._client = client
 
     @property
@@ -90,14 +152,12 @@ class ClientConnection(ConnectionContextManager):
             self._client.close()
 
 
-# Type variables for the protobuf message types using new syntax
-type StreamControlStartT = object
-type StreamDataT = object
-
-class ClientConnectionStream[StreamControlStartT, StreamDataT](ClientConnection):
+class ClientConnectionStream[StreamControlStartT, StreamDataT](
+    ClientConnection[StreamingClientProtocol]
+):
     """Base class for streaming clients with device-specific protobuf types."""
 
-    def __init__(self, client: AbstractConnection):
+    def __init__(self, client: StreamingClientProtocol):
         super().__init__(client)
         self.is_streaming = False
 
@@ -116,11 +176,15 @@ class ClientConnectionStream[StreamControlStartT, StreamDataT](ClientConnection)
         """Create default device-specific StreamControlStart message"""
         pass
 
-    def start_stream(self, config: StreamControlStartT = None, fb_config: FbPb.StreamControl = None):
+    def start_stream(
+        self,
+        config: Optional[StreamControlStartT] = None,
+        fb_config: Optional[FbPb.StreamControl] = None
+    ) -> None:
         """
         Start streaming of data.
-        @param config: device-specific stream configuration (uses default if None)
-        @param fb_config: functionblock generic configuration of the stream
+        @param config: device-specific stream configuration
+        @param fb_config: functionblock generic configuration of stream
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
@@ -129,7 +193,7 @@ class ClientConnectionStream[StreamControlStartT, StreamDataT](ClientConnection)
         self._client.start_stream(config, fb_config)
         self.is_streaming = True
 
-    def stop_stream(self):
+    def stop_stream(self) -> None:
         """
         Stop streaming of data.
         @raises RuntimeError: if the command fails
@@ -138,12 +202,15 @@ class ClientConnectionStream[StreamControlStartT, StreamDataT](ClientConnection)
         self._client.stop_stream()
         self.is_streaming = False
 
-    def read_stream(self, timeout=None) -> Tuple[Any, StreamDataT]:
+    def read_stream(
+        self,
+        timeout: Optional[float] = None
+    ) -> Tuple[Any, StreamDataT]:
         """
         Read the next message from the stream.
         @param timeout: timeout in seconds
-        @return: functionblock generic stream data (deliveryTimestampUs, sequence), device-specific stream data
-        @raises TimeoutError: if no data is available within the timeout
+        @return: functionblock generic stream data, device-specific data
+        @raises TimeoutError: if no data is available within timeout
         """
         stream_data = self._create_stream_data()
         generic_stream_data = self._client.read_stream(timeout, stream_data)

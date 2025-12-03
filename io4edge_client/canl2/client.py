@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+from typing import List
 from io4edge_client.base.connections import ClientConnectionStream, connectable
 from io4edge_client.base.logging import io4edge_client_logger
 from io4edge_client.functionblock import Client as FbClient
@@ -12,10 +13,20 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
     @param command_timeout: timeout for commands in seconds
     """
 
-    def __init__(self, addr: str, command_timeout=5, connect=True):
+    def __init__(
+        self,
+        addr: str,
+        command_timeout: int = 5,
+        connect: bool = True
+    ) -> None:
         self._logger = io4edge_client_logger("canl2.Client")
         self._logger.debug("Initializing canl2 client")
-        super().__init__(FbClient("_io4edge_canL2._tcp", addr, command_timeout, connect=connect))
+        super().__init__(
+            FbClient(
+                "_io4edge_canL2._tcp", addr, command_timeout,
+                connect=connect
+            )
+        )
 
     def _create_stream_data(self) -> Pb.StreamData:
         """Create canL2-specific StreamData message"""
@@ -26,7 +37,7 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         return Pb.StreamControlStart()
 
     @connectable
-    def upload_configuration(self, config: Pb.ConfigurationSet):
+    def upload_configuration(self, config: Pb.ConfigurationSet) -> None:
         """
         Upload the configuration to the canL2 functionblock.
         @param config: configuration to upload
@@ -49,9 +60,9 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         return fs_response
 
     @connectable
-    def send_frames(self, frames):
+    def send_frames(self, frames: List[Pb.Frame]) -> None:
         """
-        Send frames to the CAN bus. if the queue on the device is not large enough to contain all frames,
+        Send frames to CAN bus. If device queue lacks capacity,
         send nothing and raise temporarily unavailable error.
 
         @param frames: list of frames to send
@@ -59,10 +70,12 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         @raises TimeoutError: if the command times out
         """
         fs_cmd = Pb.FunctionControlSet(frame=frames)
-        self._client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
+        self._client.function_control_set(
+            fs_cmd, Pb.FunctionControlSetResponse()
+        )
 
     @connectable
-    def ctrl_state(self):
+    def ctrl_state(self) -> Pb.ControllerState.ValueType:
         """
         Get the current state of the CAN controller.
         @return: current state of the CAN controller
