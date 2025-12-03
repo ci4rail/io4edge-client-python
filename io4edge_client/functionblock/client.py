@@ -7,6 +7,7 @@ from io4edge_client.base.connections import (
     ClientConnection,
     connectable,
     StreamingClientProtocol,
+    BaseClientProtocol,
 )
 from io4edge_client.base.logging import io4edge_client_logger
 from io4edge_client.util.exceptions import CommandTemporaryUnavailableError
@@ -18,7 +19,7 @@ import google.protobuf.any_pb2 as AnyPb
 logger = io4edge_client_logger(__name__)
 
 
-class Client(ClientConnection, StreamingClientProtocol):  # type: ignore[misc]
+class Client(ClientConnection[BaseClientProtocol], StreamingClientProtocol):
     """
     io4edge functionblock client.
     @param addr: address of io4edge function block (mdns name or "ip:port" address)
@@ -291,3 +292,11 @@ class Client(ClientConnection, StreamingClientProtocol):  # type: ignore[misc]
         with self._stream_queue_mutex:
             self._stream_queue.append(stream_data)
         self._stream_queue_sema.release()
+
+    def write_msg(self, msg: Any) -> None:
+        """Write message to function block."""
+        self._client.write_msg(msg)
+
+    def read_msg(self, msg: Any, timeout: float) -> None:
+        """Read message from function block."""
+        self._client.read_msg(msg, timeout)

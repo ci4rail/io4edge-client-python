@@ -7,6 +7,31 @@ import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_function
 # Type variables are now defined inline with the new generic syntax
 
 
+class BaseClientProtocol(Protocol):
+    """Protocol for basic client operations."""
+
+    @property
+    def connected(self) -> bool:
+        """Indicates whether the client is currently connected."""
+        ...
+
+    def open(self) -> None:
+        """Open the client connection."""
+        ...
+
+    def close(self) -> None:
+        """Close the client connection."""
+        ...
+
+    def write_msg(self, msg: Any) -> None:
+        """Write message to function block."""
+        ...
+
+    def read_msg(self, msg: Any, timeout: float) -> None:
+        """Read message from function block."""
+        ...
+
+
 class StreamingClientProtocol(Protocol):
     """Protocol for streaming functionblock clients."""
 
@@ -133,7 +158,7 @@ class ConnectionContextManager(AbstractConnection):
         self.close()
 
 
-class ClientConnection[ClientT: StreamingClientProtocol](
+class ClientConnection[ClientT: BaseClientProtocol](
     ConnectionContextManager
 ):
     def __init__(self, client: ClientT):
