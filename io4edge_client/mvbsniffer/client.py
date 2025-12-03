@@ -2,8 +2,8 @@
 from io4edge_client.base.connections import ClientConnectionStream, connectable
 from io4edge_client.base.logging import io4edge_client_logger
 from io4edge_client.functionblock import Client as FbClient
-import io4edge_client.api.mvbSniffer.python.mvbSniffer.v1.mvbSniffer_pb2 as Pb
-import io4edge_client.api.mvbSniffer.python.mvbSniffer.v1.telegram_pb2 as TelegramPb
+import io4edge_client.api.mvbSniffer.python.mvbSniffer.v1.mvbSniffer_pb2 as Pb  # noqa: E501
+import io4edge_client.api.mvbSniffer.python.mvbSniffer.v1.telegram_pb2 as TelegramPb  # noqa: E501
 
 
 class Client(ClientConnectionStream[Pb.StreamControlStart, TelegramPb.TelegramCollection]):
@@ -13,10 +13,20 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, TelegramPb.TelegramCo
     @param command_timeout: timeout for commands in seconds
     """
 
-    def __init__(self, addr: str, command_timeout=5, connect=True):
+    def __init__(
+        self,
+        addr: str,
+        command_timeout: int = 5,
+        connect: bool = True
+    ) -> None:
         self._logger = io4edge_client_logger("mvbsniffer.Client")
-        self._logger.debug("Initializing mvbsniffer client")
-        super().__init__(FbClient("_io4edge_mvbSniffer._tcp", addr, command_timeout, connect=connect))
+        self._logger.debug("Initializing mvbSniffer client")
+        super().__init__(
+            FbClient(
+                "_io4edge_mvbSniffer._tcp", addr, command_timeout,
+                connect=connect
+            )
+        )
 
     def _create_stream_data(self) -> TelegramPb.TelegramCollection:
         """Create mvbSniffer-specific StreamData message"""
@@ -27,7 +37,7 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, TelegramPb.TelegramCo
         return Pb.StreamControlStart()
 
     @connectable
-    def send_pattern(self, msg: str):
+    def send_pattern(self, msg: str) -> None:
         """
         Send a pattern to the mvbSniffer's internal mvb frame generator.
         See https://github.com/ci4rail/io4edge-client-go/blob/main/mvbsniffer/generator.go how to create the pattern.
@@ -36,4 +46,6 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, TelegramPb.TelegramCo
         @raises TimeoutError: if the command times out
         """
         fs_cmd = Pb.FunctionControlSet(generator_pattern=msg)
-        self._client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
+        self._client.function_control_set(
+            fs_cmd, Pb.FunctionControlSetResponse()
+        )

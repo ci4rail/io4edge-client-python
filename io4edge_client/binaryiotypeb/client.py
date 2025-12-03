@@ -2,7 +2,7 @@
 from io4edge_client.base.connections import ClientConnectionStream, connectable
 from io4edge_client.base.logging import io4edge_client_logger
 from io4edge_client.functionblock import Client as FbClient
-import io4edge_client.api.binaryIoTypeB.python.binaryIoTypeB.v1alpha1.binaryIoTypeB_pb2 as Pb
+import io4edge_client.api.binaryIoTypeB.python.binaryIoTypeB.v1alpha1.binaryIoTypeB_pb2 as Pb  # noqa: E501
 
 
 class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
@@ -12,10 +12,20 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
     @param command_timeout: timeout for commands in seconds
     """
 
-    def __init__(self, addr: str, command_timeout=5, connect=True):
+    def __init__(
+        self,
+        addr: str,
+        command_timeout: int = 5,
+        connect: bool = True
+    ) -> None:
         self._logger = io4edge_client_logger("binaryiotypeb.Client")
-        self._logger.debug("Initializing binaryiotypeb client")
-        super().__init__(FbClient("_io4edge_binaryIoTypeB._tcp", addr, command_timeout, connect=connect))
+        self._logger.debug("Initializing binaryIoTypeB client")
+        super().__init__(
+            FbClient(
+                "_io4edge_binaryIoTypeB._tcp", addr, command_timeout,
+                connect=connect
+            )
+        )
 
     def _create_stream_data(self) -> Pb.StreamData:
         """Create binaryIoTypeB-specific StreamData message"""
@@ -33,15 +43,16 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
-        self._logger.debug("Getting description from binaryiotypeb")
+        self._logger.debug("Getting description from binaryIoTypeB")
         fs_response = Pb.ConfigurationDescribeResponse()
         self._client.describe(Pb.ConfigurationDescribe(), fs_response)
-        self._logger.info("Description retrieved successfully from "
-                          "binaryiotypeb")
+        self._logger.info(
+            "Description retrieved successfully from binaryIoTypeB"
+        )
         return fs_response
 
     @connectable
-    def set_output(self, channel: int, state: bool):
+    def set_output(self, channel: int, state: bool) -> None:
         """
         Set the state of a single output.
         @param channel: channel number
@@ -49,17 +60,21 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
-        self._logger.debug("Setting output channel %s to state %s",
-                           channel, state)
+        self._logger.debug(
+            "Setting output channel %s to state %s", channel, state
+        )
         fs_cmd = Pb.FunctionControlSet()
         fs_cmd.single.channel = channel
         fs_cmd.single.state = state
-        self._client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
-        self._logger.info("Output channel %s set to %s successfully",
-                          channel, state)
+        self._client.function_control_set(
+            fs_cmd, Pb.FunctionControlSetResponse()
+        )
+        self._logger.info(
+            "Output channel %s set to %s successfully", channel, state
+        )
 
     @connectable
-    def set_all_outputs(self, states: int, mask: int):
+    def set_all_outputs(self, states: int, mask: int) -> None:
         """
         Set the state of all or a group of output channels.
         @param states: binary coded map of outputs. 0 means switch off, 1 means switch on, LSB is Channel0
@@ -67,14 +82,19 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
-        self._logger.debug("Setting all outputs with states=0x%x, mask=0x%x",
-                           states, mask)
+        self._logger.debug(
+            "Setting all outputs with states=0x%x, mask=0x%x", states, mask
+        )
         fs_cmd = Pb.FunctionControlSet()
         fs_cmd.all.values = states
         fs_cmd.all.mask = mask
-        self._client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
-        self._logger.info("All outputs set successfully with states=0x%x, "
-                          "mask=0x%x", states, mask)
+        self._client.function_control_set(
+            fs_cmd, Pb.FunctionControlSetResponse()
+        )
+        self._logger.info(
+            "All outputs set successfully with states=0x%x, mask=0x%x",
+            states, mask
+        )
 
     @connectable
     def get_input(self, channel: int) -> bool:
