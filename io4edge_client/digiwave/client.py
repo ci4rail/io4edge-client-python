@@ -12,10 +12,20 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
     @param command_timeout: timeout for commands in seconds
     """
 
-    def __init__(self, addr: str, command_timeout=5, connect=True):
+    def __init__(
+        self,
+        addr: str,
+        command_timeout: int = 5,
+        connect: bool = True
+    ) -> None:
         self._logger = io4edge_client_logger("digiwave.Client")
         self._logger.debug("Initializing digiwave client")
-        super().__init__(FbClient("_io4edge_digiwave._tcp", addr, command_timeout, connect=connect))
+        super().__init__(
+            FbClient(
+                "_io4edge_digiwave._tcp", addr, command_timeout,
+                connect=connect
+            )
+        )
 
     def _create_stream_data(self) -> Pb.StreamData:
         """Create digiwave-specific StreamData message"""
@@ -26,9 +36,9 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         return Pb.StreamControlStart()
 
     @connectable
-    def upload_configuration(self, config: Pb.ConfigurationSet):
+    def upload_configuration(self, config: Pb.ConfigurationSet) -> None:
         """
-        Upload the configuration to th digiwave functionblock.
+        Upload the configuration to the digiwave functionblock.
         @param config: configuration to upload
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
@@ -37,7 +47,7 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         self._client.upload_configuration(config)
 
     @connectable
-    def send_wave(self, msg: bytes):
+    def send_wave(self, msg: bytes) -> None:
         """
         Send a digiwave pattern
         @param msg: pattern to send
@@ -45,4 +55,6 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         @raises TimeoutError: if the command times out
         """
         fs_cmd = Pb.FunctionControlSet(data=msg)
-        self._client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
+        self._client.function_control_set(
+            fs_cmd, Pb.FunctionControlSetResponse()
+        )

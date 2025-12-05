@@ -2,7 +2,7 @@
 from io4edge_client.base.connections import ClientConnection, connectable
 from io4edge_client.base.logging import io4edge_client_logger
 from io4edge_client.functionblock import Client as FbClient
-import io4edge_client.api.binaryIoTypeD.python.binaryIoTypeD.v1.binaryIoTypeD_pb2 as Pb
+import io4edge_client.api.binaryIoTypeD.python.binaryIoTypeD.v1.binaryIoTypeD_pb2 as Pb  # noqa: E501
 
 
 class Client(ClientConnection):
@@ -12,22 +12,34 @@ class Client(ClientConnection):
     @param command_timeout: timeout for commands in seconds
     """
 
-    def __init__(self, addr: str, command_timeout=5, connect=True):
+    def __init__(
+        self,
+        addr: str,
+        command_timeout: int = 5,
+        connect: bool = True
+    ) -> None:
         self._logger = io4edge_client_logger("binaryiotyped.Client")
-        self._logger.debug("Initializing binaryiotyped client")
-        super().__init__(FbClient("_io4edge_binaryIoTypeD._tcp", addr, command_timeout, connect=connect))
+        self._logger.debug("Initializing binaryIoTypeD client")
+        super().__init__(
+            FbClient(
+                "_io4edge_binaryIoTypeD._tcp", addr, command_timeout,
+                connect=connect
+            )
+        )
 
     @connectable
-    def upload_configuration(self, config: Pb.ConfigurationSet):
+    def upload_configuration(self, config: Pb.ConfigurationSet) -> None:
         """
         Upload the configuration to the binaryIoTypeD functionblock.
         @param config: configuration to upload
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
-        self._logger.debug("Uploading configuration to binaryiotyped")
+        self._logger.debug("Uploading configuration to binaryIoTypeD")
         self._client.upload_configuration(config)
-        self._logger.info("Configuration uploaded successfully to binaryiotyped")
+        self._logger.info(
+            "Configuration uploaded successfully to binaryIoTypeD"
+        )
 
     @connectable
     def download_configuration(self) -> Pb.ConfigurationGetResponse:
@@ -42,8 +54,7 @@ class Client(ClientConnection):
         return fs_response
 
     @connectable
-    def set_output(self, channel: int, state: bool):
-        self._logger.debug("Setting output channel %s to state %s", channel, state)
+    def set_output(self, channel: int, state: bool) -> None:
         """
         Set the state of a single output.
         @param channel: channel number
@@ -51,14 +62,21 @@ class Client(ClientConnection):
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
+        self._logger.debug(
+            "Setting output channel %s to state %s", channel, state
+        )
         fs_cmd = Pb.FunctionControlSet()
         fs_cmd.single.channel = channel
         fs_cmd.single.state = state
-        self._client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
-        self._logger.info("Output channel %s set to %s successfully", channel, state)
+        self._client.function_control_set(
+            fs_cmd, Pb.FunctionControlSetResponse()
+        )
+        self._logger.info(
+            "Output channel %s set to %s successfully", channel, state
+        )
 
     @connectable
-    def set_outputs(self, states: int, mask: int):
+    def set_outputs(self, states: int, mask: int) -> None:
         """
         Set the state of all or a group of output channels.
         @param states: binary coded map of outputs. 0 means switch off, 1 means switch on, LSB is Channel0
@@ -69,7 +87,9 @@ class Client(ClientConnection):
         fs_cmd = Pb.FunctionControlSet()
         fs_cmd.all.values = states
         fs_cmd.all.mask = mask
-        self._client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
+        self._client.function_control_set(
+            fs_cmd, Pb.FunctionControlSetResponse()
+        )
 
     @connectable
     def get_channels(self) -> Pb.FunctionControlGetResponse:

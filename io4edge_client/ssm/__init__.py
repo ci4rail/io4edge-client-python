@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
+import io4edge_client.api.ssm.python.ssm.v1.ssm_pb2 as Pb
 from .client import Client
-import io4edge_client.api.watchdog.python.watchdog.v1.watchdog_pb2 as Pb
 
 __all__ = ["Client", "Pb"]

@@ -1,19 +1,25 @@
 # SPDX-License-Identifier: Apache-2.0
 import threading
 from collections import deque
+from typing import Any
 from io4edge_client.base import Client as BaseClient
-from io4edge_client.base.connections import ClientConnection, connectable
+from io4edge_client.base.connections import (
+    ClientConnection,
+    connectable,
+    StreamingClientProtocol,
+    BaseClientProtocol,
+)
 from io4edge_client.base.logging import io4edge_client_logger
 from io4edge_client.util.exceptions import CommandTemporaryUnavailableError
 from ..util.any import pb_any_unpack
-import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb
+import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb  # noqa: E501
 import google.protobuf.any_pb2 as AnyPb
 
 
 logger = io4edge_client_logger(__name__)
 
 
-class Client(ClientConnection):
+class Client(ClientConnection[BaseClientProtocol], StreamingClientProtocol):
     """
     io4edge functionblock client.
     @param addr: address of io4edge function block (mdns name or "ip:port" address)
@@ -21,7 +27,13 @@ class Client(ClientConnection):
     @param command_timeout: timeout for commands in seconds
     """
 
-    def __init__(self, service: str, addr: str, command_timeout=5, connect=True):
+    def __init__(
+        self,
+        service: str,
+        addr: str,
+        command_timeout: int = 5,
+        connect: bool = True
+    ) -> None:
         self._logger = io4edge_client_logger("functionblock.Client")
         self._logger.debug(f"Initializing functionblock client for "
                            f"service='{service}', addr='{addr}', "
@@ -43,7 +55,7 @@ class Client(ClientConnection):
         if connect:
             self.open()
 
-    def open(self):
+    def open(self) -> None:
         self._logger.debug("Opening functionblock client connection")
         if not self.connected:
             self._client.open()
@@ -59,7 +71,7 @@ class Client(ClientConnection):
     def connected(self):
         return self._client.connected and not self._read_thread_stop
 
-    def close(self):
+    def close(self) -> None:
         """
         Close the connection to the function block, terminate read thread.
         After calling this method, the object is no longer usable.
@@ -72,7 +84,7 @@ class Client(ClientConnection):
         self._logger.debug("Functionblock client connection closed")
 
     @connectable
-    def upload_configuration(self, fs_cmd):
+    def upload_configuration(self, fs_cmd: Any) -> None:
         """
         Upload configuration to io4edge function block.
         @param fs_cmd: protobuf message with the function specific configuration
@@ -89,11 +101,11 @@ class Client(ClientConnection):
         self._logger.info("Configuration uploaded successfully")
 
     @connectable
-    def download_configuration(self, fs_cmd, fs_response):
+    def download_configuration(self, fs_cmd: Any, fs_response: Any) -> None:
         """
         Download configuration from io4edge function block.
-        @param fs_cmd: protobuf message with the function specific configuration (mostly empty)
-        @param fs_response: protobuf message that is filled with the function specific configuration response
+        @param fs_cmd: protobuf message with function specific configuration (empty)
+        @param fs_response: protobuf message filled with configuration response
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
@@ -110,11 +122,11 @@ class Client(ClientConnection):
         self._logger.info("Configuration downloaded successfully")
 
     @connectable
-    def describe(self, fs_cmd, fs_response):
+    def describe(self, fs_cmd: Any, fs_response: Any) -> None:
         """
         Describe the function block (call the firmware describe function).
-        @param fs_cmd: protobuf message with the function specific describe request (mostly empty)
-        @param fs_response: protobuf message that is filled with the function specific describe response
+        @param fs_cmd: protobuf message with function specific describe request
+        @param fs_response: protobuf message filled with describe response
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
@@ -129,11 +141,11 @@ class Client(ClientConnection):
         )
 
     @connectable
-    def function_control_set(self, fs_cmd, fs_response):
+    def function_control_set(self, fs_cmd: Any, fs_response: Any) -> None:
         """
         Execute "function control set" command on io4edge function block.
-        @param fs_cmd: protobuf message with the function specific function control set request
-        @param fs_response: protobuf message that is filled with the function specific function control set response
+        @param fs_cmd: protobuf message with function control set request
+        @param fs_response: protobuf message filled with set response
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
@@ -148,11 +160,11 @@ class Client(ClientConnection):
         )
 
     @connectable
-    def function_control_get(self, fs_cmd, fs_response):
+    def function_control_get(self, fs_cmd: Any, fs_response: Any) -> None:
         """
         Execute "function control get" command on io4edge function block.
-        @param fs_cmd: protobuf message with the function specific function control get request (mostly empty)
-        @param fs_response: protobuf message that is filled with the function specific function control get response
+        @param fs_cmd: protobuf message with function control get request
+        @param fs_response: protobuf message filled with get response
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
@@ -166,11 +178,13 @@ class Client(ClientConnection):
             fb_res.functionControl.functionSpecificFunctionControlGet, fs_response
         )
 
-    def start_stream(self, fs_config, fb_config: FbPb.StreamControlStart):
+    def start_stream(
+        self, fs_config: Any, fb_config: FbPb.StreamControlStart
+    ) -> None:
         """
         Start streaming data from io4edge function block.
-        @param fs_config: protobuf message with the function specific configuration
-        @param fb_config: protobuf message with the function block configuration
+        @param fs_config: protobuf message with function specific config
+        @param fb_config: protobuf message with function block config
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
@@ -185,7 +199,7 @@ class Client(ClientConnection):
         self._command(fb_cmd)
         self._logger.info("Stream started successfully")
 
-    def stop_stream(self):
+    def stop_stream(self) -> None:
         """
         Stop streaming data from io4edge function block.
         @raises RuntimeError: if the command fails
@@ -198,13 +212,13 @@ class Client(ClientConnection):
         self._command(fb_cmd)
         self._logger.info("Stream stopped successfully")
 
-    def read_stream(self, timeout, stream_data):
+    def read_stream(self, timeout: float | None, stream_data: Any) -> Any:
         """
         Read next message from stream.
         @param timeout: timeout in seconds
-        @param stream_data: protobuf message that is filled with the stream data
+        @param stream_data: protobuf message filled with stream data
         @return functionblock stream meta data (deliveryTimestampUs, sequence)
-        @raises TimeoutError: if no data is available within the timeout
+        @raises TimeoutError: if no data is available within timeout
         """
         self._logger.debug("Reading stream data with timeout=%s", timeout)
         if not self._stream_queue_sema.acquire(timeout=timeout):
@@ -217,7 +231,7 @@ class Client(ClientConnection):
             return data
 
     @connectable
-    def _command(self, cmd: FbPb.Command):
+    def _command(self, cmd: FbPb.Command) -> FbPb.Response:
         with self._cmd_mutex:
             cmd.context.value = str(self._cmd_context)
             self._cmd_event.clear()
@@ -226,21 +240,28 @@ class Client(ClientConnection):
                 raise TimeoutError("Command timed out")
 
             response = self._cmd_response
+            if response is None:
+                raise RuntimeError("No response received")
             if response.context.value != str(self._cmd_context):
                 raise RuntimeError(
-                    f"Command context mismatch. Got {response.context.value}, expected {self._cmd_context}"
+                    f"Context mismatch. Got {response.context.value}, "
+                    f"expected {self._cmd_context}"
                 )
 
             self._cmd_context += 1
 
             if response.status == FbPb.Status.TEMPORARILY_UNAVAILABLE:
-                raise CommandTemporaryUnavailableError(f"Out of resources: {response.error}")
+                raise CommandTemporaryUnavailableError(
+                    f"Out of resources: {response.error}"
+                )
             elif response.status != FbPb.Status.OK:
                 status_str = FbPb.Status.Name(response.status)
-                raise RuntimeError(f"Command failed: {status_str}: {response.error}")
+                raise RuntimeError(
+                    f"Command failed: {status_str}: {response.error}"
+                )
             return response
 
-    def _read_thread(self):
+    def _read_thread(self) -> None:
         while not self._read_thread_stop:
             msg = FbPb.Response()
             try:
@@ -267,7 +288,15 @@ class Client(ClientConnection):
                 self._cmd_event.set()
         logger.info("Read thread exiting")
 
-    def _feed_stream(self, stream_data):
+    def _feed_stream(self, stream_data: Any) -> None:
         with self._stream_queue_mutex:
             self._stream_queue.append(stream_data)
         self._stream_queue_sema.release()
+
+    def write_msg(self, msg: Any) -> None:
+        """Write message to function block."""
+        self._client.write_msg(msg)
+
+    def read_msg(self, msg: Any, timeout: float) -> None:
+        """Read message from function block."""
+        self._client.read_msg(msg, timeout)

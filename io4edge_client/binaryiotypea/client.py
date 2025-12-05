@@ -2,7 +2,7 @@
 from io4edge_client.base.connections import ClientConnectionStream, connectable
 from io4edge_client.base.logging import io4edge_client_logger
 from io4edge_client.functionblock import Client as FbClient
-import io4edge_client.api.binaryIoTypeA.python.binaryIoTypeA.v1alpha1.binaryIoTypeA_pb2 as Pb
+import io4edge_client.api.binaryIoTypeA.python.binaryIoTypeA.v1alpha1.binaryIoTypeA_pb2 as Pb  # noqa: E501
 
 
 class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
@@ -12,10 +12,20 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
     @param command_timeout: timeout for commands in seconds
     """
 
-    def __init__(self, addr: str, command_timeout=5, connect=True):
+    def __init__(
+        self,
+        addr: str,
+        command_timeout: int = 5,
+        connect: bool = True
+    ) -> None:
         self._logger = io4edge_client_logger("binaryiotypea.Client")
-        self._logger.debug("Initializing binaryiotypea client")
-        super().__init__(FbClient("_io4edge_binaryIoTypeA._tcp", addr, command_timeout, connect=connect))
+        self._logger.debug("Initializing binaryIoTypeA client")
+        super().__init__(
+            FbClient(
+                "_io4edge_binaryIoTypeA._tcp", addr, command_timeout,
+                connect=connect
+            )
+        )
 
     def _create_stream_data(self) -> Pb.StreamData:
         """Create binaryIoTypeA-specific StreamData message"""
@@ -26,17 +36,18 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         return Pb.StreamControlStart()
 
     @connectable
-    def upload_configuration(self, config: Pb.ConfigurationSet):
+    def upload_configuration(self, config: Pb.ConfigurationSet) -> None:
         """
         Upload the configuration to the binaryIoTypeA functionblock.
         @param config: configuration to upload
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
-        self._logger.debug("Uploading configuration for binaryiotypea")
+        self._logger.debug("Uploading configuration to binaryiotypea")
         self._client.upload_configuration(config)
-        self._logger.info("Configuration uploaded successfully for "
-                          "binaryiotypea")
+        self._logger.info(
+            "Configuration uploaded successfully to binaryiotypea"
+        )
 
     @connectable
     def download_configuration(self) -> Pb.ConfigurationGetResponse:
