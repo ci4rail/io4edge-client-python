@@ -14,15 +14,26 @@ class Client(ClientConnection):
     @param command_timeout: timeout for commands in seconds
     """
 
-    def __init__(self, addr: str, command_timeout=5, connect=False):
-        self._logger = io4edge_client_logger("watchdog.Client")
-        self._logger.debug("Initializing watchdog client")
-        super().__init__(FbClient("_io4edge_watchdog._tcp", addr, command_timeout, connect=connect))
+    def __init__(
+        self,
+        addr: str,
+        command_timeout: int = 5,
+        connect: bool = False
+    ) -> None:
+        self._logger = io4edge_client_logger("ssm.Client")
+        self._logger.debug("Initializing SSM client")
+        super().__init__(
+            FbClient(
+                "_io4edge_ssm._tcp", addr, command_timeout,
+                connect=connect
+            )
+        )
 
     @connectable
     def describe(self) -> Pb.ConfigurationDescribeResponse:
         """
         Get the description from the System State Manager functionblock.
+
         @return: description from the System State Manager functionblock
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
@@ -33,7 +44,7 @@ class Client(ClientConnection):
         return fs_response
 
     @connectable
-    def kick(self):
+    def kick(self) -> None:
         """
         Kick the System State Manager to prevent a timeout.
 
@@ -82,25 +93,28 @@ class Client(ClientConnection):
         fs_response = Pb.FunctionControlSetResponse()
         self._client.function_control_set(fs_cmd, fs_response)
 
-        msg = fs_response.state_error.message
-        rsp = fs_response.state_error.response
+        # Check if response has error information
+        if hasattr(fs_response, 'state_error'):
+            msg = fs_response.state_error.message
+            rsp = fs_response.state_error.response
 
-        # exception handling based on response
-        match rsp:
-            case Pb.StateCommandResponseType.STATE_OK:
-                return
-            case Pb.StateCommandResponseType.INVALID_STATE_ERROR:
-                raise InvalidStateError(
-                    "Invalid state for setting error: ", msg)
-            case Pb.StateCommandResponseType.UNKNOWN_STATE_ERROR:
-                raise UnknownError("Unknown error while setting error: ", msg)
-            case _:
-                raise RuntimeError("Unhandled response from SSM functionblock")
+            # exception handling based on response
+            match rsp:
+                case Pb.StateCommandResponseType.STATE_OK:
+                    return
+                case Pb.StateCommandResponseType.INVALID_STATE_ERROR:
+                    raise InvalidStateError(
+                        "Invalid state for setting error: ", msg)
+                case Pb.StateCommandResponseType.UNKNOWN_STATE_ERROR:
+                    raise UnknownError("Unknown error while setting error: ", msg)
+                case _:
+                    raise RuntimeError("Unhandled response from SSM functionblock")
 
     @connectable
     def resolve(self, msg: str) -> None:
         """
         Resolve current error state.
+
         @param msg: resolution message
         @raises RuntimeError: if command fails or unhandled response
         @raises TimeoutError: if the command times out
@@ -113,21 +127,23 @@ class Client(ClientConnection):
         fs_response = Pb.FunctionControlSetResponse()
         self._client.function_control_set(fs_cmd, fs_response)
 
-        msg = fs_response.state_error.message
-        rsp = fs_response.state_error.response
+        # Check if response has error information
+        if hasattr(fs_response, 'state_error'):
+            msg = fs_response.state_error.message
+            rsp = fs_response.state_error.response
 
-        # exception handling based on response
-        match rsp:
-            case Pb.StateCommandResponseType.STATE_OK:
-                return
-            case Pb.StateCommandResponseType.INVALID_STATE_ERROR:
-                raise InvalidStateError(
-                    "Invalid state for resolving error: ", msg)
-            case Pb.StateCommandResponseType.UNKNOWN_STATE_ERROR:
-                raise UnknownError(
-                    "Unknown error while resolving error: ", msg)
-            case _:
-                raise RuntimeError("Unhandled response from SSM functionblock")
+            # exception handling based on response
+            match rsp:
+                case Pb.StateCommandResponseType.STATE_OK:
+                    return
+                case Pb.StateCommandResponseType.INVALID_STATE_ERROR:
+                    raise InvalidStateError(
+                        "Invalid state for resolving error: ", msg)
+                case Pb.StateCommandResponseType.UNKNOWN_STATE_ERROR:
+                    raise UnknownError(
+                        "Unknown error while resolving error: ", msg)
+                case _:
+                    raise RuntimeError("Unhandled response from SSM functionblock")
 
     @connectable
     def fatal(self, msg: str) -> None:
@@ -146,20 +162,22 @@ class Client(ClientConnection):
         fs_response = Pb.FunctionControlSetResponse()
         self._client.function_control_set(fs_cmd, fs_response)
 
-        msg = fs_response.state_error.message
-        rsp = fs_response.state_error.response
+        # Check if response has error information
+        if hasattr(fs_response, 'state_error'):
+            msg = fs_response.state_error.message
+            rsp = fs_response.state_error.response
 
-        # exception handling based on response
-        match rsp:
-            case Pb.StateCommandResponseType.STATE_OK:
-                return
-            case Pb.StateCommandResponseType.INVALID_STATE_ERROR:
-                raise InvalidStateError("Invalid state for fatal error: ", msg)
-            case Pb.StateCommandResponseType.UNKNOWN_STATE_ERROR:
-                raise UnknownError(
-                    "Unknown error while signaling fatal error: ", msg)
-            case _:
-                raise RuntimeError("Unhandled response from SSM functionblock")
+            # exception handling based on response
+            match rsp:
+                case Pb.StateCommandResponseType.STATE_OK:
+                    return
+                case Pb.StateCommandResponseType.INVALID_STATE_ERROR:
+                    raise InvalidStateError("Invalid state for fatal error: ", msg)
+                case Pb.StateCommandResponseType.UNKNOWN_STATE_ERROR:
+                    raise UnknownError(
+                        "Unknown error while signaling fatal error: ", msg)
+                case _:
+                    raise RuntimeError("Unhandled response from SSM functionblock")
 
     @connectable
     def shutdown(self) -> None:
@@ -177,21 +195,23 @@ class Client(ClientConnection):
         fs_response = Pb.FunctionControlSetResponse()
         self._client.function_control_set(fs_cmd, fs_response)
 
-        msg = fs_response.host_error.message
-        rsp = fs_response.host_error.response
+        # Check if response has host error information
+        if hasattr(fs_response, 'host_error'):
+            msg = fs_response.host_error.message
+            rsp = fs_response.host_error.response
 
-        # exception handling based on response
-        match rsp:
-            case Pb.HostCommandResponseType.CMD_OK:
-                return
-            case Pb.HostCommandResponseType.INVALID_CMD_STATE_ERROR:
-                raise InvalidStateError(
-                    "Invalid state for shutdown signal: ", msg)
-            case Pb.HostCommandResponseType.UNKNOWN_CMD_ERROR:
-                raise UnknownError(
-                    "Unknown error while signaling shutdown: ", msg)
-            case _:
-                raise RuntimeError("Unhandled response from SSM functionblock")
+            # exception handling based on response
+            match rsp:
+                case Pb.HostCommandResponseType.CMD_OK:
+                    return
+                case Pb.HostCommandResponseType.INVALID_CMD_STATE_ERROR:
+                    raise InvalidStateError(
+                        "Invalid state for shutdown signal: ", msg)
+                case Pb.HostCommandResponseType.UNKNOWN_CMD_ERROR:
+                    raise UnknownError(
+                        "Unknown error while signaling shutdown: ", msg)
+                case _:
+                    raise RuntimeError("Unhandled response from SSM functionblock")
 
     @connectable
     def on(self) -> None:
@@ -209,19 +229,21 @@ class Client(ClientConnection):
         fs_response = Pb.FunctionControlSetResponse()
         self._client.function_control_set(fs_cmd, fs_response)
 
-        msg = fs_response.host_error.message
-        rsp = fs_response.host_error.response
+        # Check if response has host error information
+        if hasattr(fs_response, 'host_error'):
+            msg = fs_response.host_error.message
+            rsp = fs_response.host_error.response
 
-        # exception handling based on response
-        match rsp:
-            case Pb.HostCommandResponseType.CMD_OK:
-                return
-            case Pb.HostCommandResponseType.INVALID_CMD_STATE_ERROR:
-                raise InvalidStateError("Invalid state for turning on: ", msg)
-            case Pb.HostCommandResponseType.UNKNOWN_CMD_ERROR:
-                raise UnknownError("Unknown error while turning on: ", msg)
-            case _:
-                raise RuntimeError("Unhandled response from SSM functionblock")
+            # exception handling based on response
+            match rsp:
+                case Pb.HostCommandResponseType.CMD_OK:
+                    return
+                case Pb.HostCommandResponseType.INVALID_CMD_STATE_ERROR:
+                    raise InvalidStateError("Invalid state for turning on: ", msg)
+                case Pb.HostCommandResponseType.UNKNOWN_CMD_ERROR:
+                    raise UnknownError("Unknown error while turning on: ", msg)
+                case _:
+                    raise RuntimeError("Unhandled response from SSM functionblock")
 
     @connectable
     def reboot(self) -> None:
@@ -239,18 +261,20 @@ class Client(ClientConnection):
         fs_response = Pb.FunctionControlSetResponse()
         self._client.function_control_set(fs_cmd, fs_response)
 
-        msg = fs_response.host_error.message
-        rsp = fs_response.host_error.response
+        # Check if response has host error information
+        if hasattr(fs_response, 'host_error'):
+            msg = fs_response.host_error.message
+            rsp = fs_response.host_error.response
 
-        # exception handling based on response
-        match rsp:
-            case Pb.HostCommandResponseType.CMD_OK:
-                return
-            case Pb.HostCommandResponseType.INVALID_CMD_STATE_ERROR:
-                raise InvalidStateError(
-                    "Invalid state for signaling reboot: ", msg)
-            case Pb.HostCommandResponseType.UNKNOWN_CMD_ERROR:
-                raise UnknownError(
-                    "Unknown error while signaling reboot: ", msg)
-            case _:
-                raise RuntimeError("Unhandled response from SSM functionblock")
+            # exception handling based on response
+            match rsp:
+                case Pb.HostCommandResponseType.CMD_OK:
+                    return
+                case Pb.HostCommandResponseType.INVALID_CMD_STATE_ERROR:
+                    raise InvalidStateError(
+                        "Invalid state for signaling reboot: ", msg)
+                case Pb.HostCommandResponseType.UNKNOWN_CMD_ERROR:
+                    raise UnknownError(
+                        "Unknown error while signaling reboot: ", msg)
+                case _:
+                    raise RuntimeError("Unhandled response from SSM functionblock")

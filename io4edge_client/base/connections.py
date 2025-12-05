@@ -31,35 +31,6 @@ class BaseClientProtocol(Protocol):
         """Read message from function block."""
         ...
 
-
-class StreamingClientProtocol(Protocol):
-    """Protocol for streaming functionblock clients."""
-
-    @property
-    def connected(self) -> bool:
-        """Indicates whether the client is currently connected."""
-        ...
-
-    def open(self) -> None:
-        """Open the client connection."""
-        ...
-
-    def close(self) -> None:
-        """Close the client connection."""
-        ...
-
-    def start_stream(self, fs_config: Any, fb_config: Any) -> None:
-        """Start streaming data."""
-        ...
-
-    def stop_stream(self) -> None:
-        """Stop streaming data."""
-        ...
-
-    def read_stream(self, timeout: Optional[float], stream_data: Any) -> Any:
-        """Read next message from stream."""
-        ...
-
     def function_control_set(self, fs_cmd: Any, fs_response: Any) -> None:
         """Execute function control set command."""
         ...
@@ -80,12 +51,20 @@ class StreamingClientProtocol(Protocol):
         """Describe function block configuration."""
         ...
 
-    def write_msg(self, msg: Any) -> None:
-        """Write message to function block."""
+
+class StreamingClientProtocol(BaseClientProtocol, Protocol):
+    """Protocol for streaming functionblock clients."""
+
+    def start_stream(self, fs_config: Any, fb_config: Any) -> None:
+        """Start streaming data."""
         ...
 
-    def read_msg(self, msg: Any, timeout: float) -> None:
-        """Read message from function block."""
+    def stop_stream(self) -> None:
+        """Stop streaming data."""
+        ...
+
+    def read_stream(self, timeout: Optional[float], stream_data: Any) -> Any:
+        """Read next message from stream."""
         ...
 
 
@@ -176,6 +155,34 @@ class ClientConnection[ClientT: BaseClientProtocol](
         if self.connected:
             self._client.close()
 
+    def function_control_set(self, fs_cmd: Any, fs_response: Any) -> None:
+        """Execute function control set command."""
+        self._client.function_control_set(fs_cmd, fs_response)
+
+    def function_control_get(self, fs_cmd: Any, fs_response: Any) -> None:
+        """Execute function control get command."""
+        self._client.function_control_get(fs_cmd, fs_response)
+
+    def upload_configuration(self, fs_cmd: Any) -> None:
+        """Upload configuration."""
+        self._client.upload_configuration(fs_cmd)
+
+    def download_configuration(self, fs_cmd: Any, fs_response: Any) -> None:
+        """Download configuration."""
+        self._client.download_configuration(fs_cmd, fs_response)
+
+    def describe(self, fs_cmd: Any, fs_response: Any) -> None:
+        """Describe function block configuration."""
+        self._client.describe(fs_cmd, fs_response)
+
+    def write_msg(self, msg: Any) -> None:
+        """Write message to function block."""
+        self._client.write_msg(msg)
+
+    def read_msg(self, msg: Any, timeout: float) -> None:
+        """Read message from function block."""
+        self._client.read_msg(msg, timeout)
+
 
 class ClientConnectionStream[StreamControlStartT, StreamDataT](
     ClientConnection[StreamingClientProtocol]
@@ -240,3 +247,31 @@ class ClientConnectionStream[StreamControlStartT, StreamDataT](
         stream_data = self._create_stream_data()
         generic_stream_data = self._client.read_stream(timeout, stream_data)
         return generic_stream_data, stream_data
+
+    def function_control_set(self, fs_cmd: Any, fs_response: Any) -> None:
+        """Execute function control set command."""
+        self._client.function_control_set(fs_cmd, fs_response)
+
+    def function_control_get(self, fs_cmd: Any, fs_response: Any) -> None:
+        """Execute function control get command."""
+        self._client.function_control_get(fs_cmd, fs_response)
+
+    def upload_configuration(self, fs_cmd: Any) -> None:
+        """Upload configuration."""
+        self._client.upload_configuration(fs_cmd)
+
+    def download_configuration(self, fs_cmd: Any, fs_response: Any) -> None:
+        """Download configuration."""
+        self._client.download_configuration(fs_cmd, fs_response)
+
+    def describe(self, fs_cmd: Any, fs_response: Any) -> None:
+        """Describe function block configuration."""
+        self._client.describe(fs_cmd, fs_response)
+
+    def write_msg(self, msg: Any) -> None:
+        """Write message to function block."""
+        self._client.write_msg(msg)
+
+    def read_msg(self, msg: Any, timeout: float) -> None:
+        """Read message from function block."""
+        self._client.read_msg(msg, timeout)
