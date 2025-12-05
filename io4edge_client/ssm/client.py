@@ -106,7 +106,7 @@ class Client(ClientConnection):
                     raise InvalidStateError(
                         "Invalid state for setting error: ", msg)
                 case Pb.StateCommandResponseType.UNKNOWN_STATE_ERROR:
-                    raise UnknownError("Unknown error while setting error: ", msg)
+                    raise UnknownError("Unknown error while setting error state: ", msg)
                 case _:
                     raise RuntimeError("Unhandled response from SSM functionblock")
 
