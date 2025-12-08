@@ -5,13 +5,15 @@ import select
 import threading
 from typing import Optional
 
-from io4edge_client.base.connections import ClientConnection, must_be_connected
+from io4edge_client.base.connections import must_be_connected
 from io4edge_client.base.logging import io4edge_client_logger
 
 logger = io4edge_client_logger(__name__)
 
 
-class SocketTransport(ClientConnection):
+class SocketTransport:
+    """Socket transport implementing ConnectionProtocol."""
+
     def __init__(self, host, port, connect=True):
         self._host = host
         self._port = port
@@ -19,8 +21,6 @@ class SocketTransport(ClientConnection):
         # Thread-safe connection management with reference counting
         self._connection_lock = threading.RLock()  # Reentrant lock
         self._connection_ref_count = 0
-
-        super().__init__(self)
 
         if connect:
             self.open()

@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from functools import wraps
 from typing import Tuple, Any, Optional, Protocol
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb  # noqa: E501
@@ -7,8 +7,8 @@ import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_function
 # Type variables are now defined inline with the new generic syntax
 
 
-class BaseClientProtocol(Protocol):
-    """Protocol for basic client operations."""
+class ConnectionProtocol(Protocol):
+    """Protocol for basic connection operations only."""
 
     @property
     def connected(self) -> bool:
@@ -22,6 +22,10 @@ class BaseClientProtocol(Protocol):
     def close(self) -> None:
         """Close the client connection."""
         ...
+
+
+class BaseClientProtocol(ConnectionProtocol, Protocol):
+    """Protocol for basic client operations."""
 
     def write_msg(self, msg: Any) -> None:
         """Write message to function block."""
@@ -108,39 +112,10 @@ def must_be_connected(func):
     return check_connection
 
 
-class AbstractConnection(ABC):
+class SimpleConnection:
+    """Simple connection implementation that wraps a ConnectionProtocol."""
 
-    @property
-    @abstractmethod
-    def connected(self) -> bool:
-        """Indicates whether the client is currently connected."""
-        pass
-
-    @abstractmethod
-    def open(self) -> None:
-        """Open the client connection."""
-        pass
-
-    @abstractmethod
-    def close(self) -> None:
-        """Close the client connection."""
-        pass
-
-
-class ConnectionContextManager(AbstractConnection):
-    def __enter__(self):
-        if not self.connected:
-            self.open()
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
-
-
-class ClientConnection[ClientT: BaseClientProtocol](
-    ConnectionContextManager
-):
-    def __init__(self, client: ClientT):
+    def __init__(self, client: ConnectionProtocol):
         self._client = client
 
     @property
@@ -154,6 +129,22 @@ class ClientConnection[ClientT: BaseClientProtocol](
     def close(self) -> None:
         if self.connected:
             self._client.close()
+
+    def __enter__(self):
+        if not self.connected:
+            self.open()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+
+class ClientConnection[ClientT: BaseClientProtocol](SimpleConnection):
+    """Connection wrapper with full client functionality."""
+
+    def __init__(self, client: ClientT):
+        super().__init__(client)
+        self._client: ClientT = client  # Type hint for better IDE support
 
     def function_control_set(self, fs_cmd: Any, fs_response: Any) -> None:
         """Execute function control set command."""
