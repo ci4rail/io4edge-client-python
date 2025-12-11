@@ -20,12 +20,13 @@ class Client(ClientConnection):
     ) -> None:
         self._logger = io4edge_client_logger("binaryiotyped.Client")
         self._logger.debug("Initializing binaryIoTypeD client")
-        super().__init__(
-            FbClient(
-                "_io4edge_binaryIoTypeD._tcp", addr, command_timeout,
-                connect=connect
-            )
+        fb_client = FbClient(
+            "_io4edge_binaryIoTypeD._tcp", addr, command_timeout,
+            connect=connect
         )
+        super().__init__(fb_client)
+        # Type hint for better IDE support
+        self._client: FbClient = self._client
 
     @connectable
     def upload_configuration(self, config: Pb.ConfigurationSet) -> None:

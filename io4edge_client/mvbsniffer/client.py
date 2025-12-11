@@ -21,12 +21,13 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, TelegramPb.TelegramCo
     ) -> None:
         self._logger = io4edge_client_logger("mvbsniffer.Client")
         self._logger.debug("Initializing mvbSniffer client")
-        super().__init__(
-            FbClient(
-                "_io4edge_mvbSniffer._tcp", addr, command_timeout,
-                connect=connect
-            )
+        fb_client = FbClient(
+            "_io4edge_mvbSniffer._tcp", addr, command_timeout,
+            connect=connect
         )
+        super().__init__(fb_client)
+        # Type hint for better IDE support
+        self._client: FbClient = self._client
 
     def _create_stream_data(self) -> TelegramPb.TelegramCollection:
         """Create mvbSniffer-specific StreamData message"""

@@ -21,12 +21,13 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
     ) -> None:
         self._logger = io4edge_client_logger("canl2.Client")
         self._logger.debug("Initializing canl2 client")
-        super().__init__(
-            FbClient(
-                "_io4edge_canL2._tcp", addr, command_timeout,
-                connect=connect
-            )
+        fb_client = FbClient(
+            "_io4edge_canL2._tcp", addr, command_timeout,
+            connect=connect
         )
+        super().__init__(fb_client)
+        # Type hint for better IDE support
+        self._client: FbClient = self._client
 
     def _create_stream_data(self) -> Pb.StreamData:
         """Create canL2-specific StreamData message"""

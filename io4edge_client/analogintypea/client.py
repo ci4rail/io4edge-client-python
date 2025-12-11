@@ -23,12 +23,13 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
             "Initializing analogInTypeA client for addr='%s', timeout=%s",
             addr, command_timeout
         )
-        super().__init__(
-            FbClient(
-                "_io4edge_analogInTypeA._tcp", addr, command_timeout,
-                connect=connect
-            )
+        fb_client = FbClient(
+            "_io4edge_analogInTypeA._tcp", addr, command_timeout,
+            connect=connect
         )
+        super().__init__(fb_client)
+        # Type hint for better IDE support
+        self._client: FbClient = self._client
 
     def _create_stream_data(self) -> Pb.StreamData:
         """Create analogInTypeA-specific StreamData message"""

@@ -22,12 +22,13 @@ class Client(ClientConnection):
     ) -> None:
         self._logger = io4edge_client_logger("pixelDisplay.Client")
         self._logger.debug("Initializing pixelDisplay client")
-        super().__init__(
-            FbClient(
-                "_io4edge_pixelDisplay._tcp", addr, command_timeout,
-                connect=connect
-            )
+        fb_client = FbClient(
+            "_io4edge_pixelDisplay._tcp", addr, command_timeout,
+            connect=connect
         )
+        super().__init__(fb_client)
+        # Type hint for better IDE support
+        self._client: FbClient = self._client
 
     @connectable
     def describe(self) -> Pb.ConfigurationDescribeResponse:
