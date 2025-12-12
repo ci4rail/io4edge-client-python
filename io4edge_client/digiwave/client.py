@@ -5,7 +5,9 @@ from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.digiwave.python.digiwave.v1.digiwave_pb2 as Pb
 
 
-class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
+class Client(
+    ClientConnectionStream[FbClient, Pb.StreamControlStart, Pb.StreamData]
+):
     """
     digiwave functionblock client.
     @param addr: address of io4edge function block (mdns name or "ip:port" address)

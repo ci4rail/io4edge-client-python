@@ -5,7 +5,7 @@ from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.binaryIoTypeD.python.binaryIoTypeD.v1.binaryIoTypeD_pb2 as Pb  # noqa: E501
 
 
-class Client(ClientConnection):
+class Client(ClientConnection[FbClient]):
     """
     binaryIoTypeD functionblock client.
     @param addr: address of io4edge function block (mdns name or "ip:port" address)

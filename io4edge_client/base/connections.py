@@ -1,10 +1,7 @@
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from functools import wraps
 from typing import Tuple, Any, Optional, Protocol
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb  # noqa: E501
-
-
-# Type variables are now defined inline with the new generic syntax
 
 
 class ConnectionProtocol(Protocol):
@@ -175,12 +172,17 @@ class ClientConnection[ClientT: BaseClientProtocol](SimpleConnection):
         self._client.read_msg(msg, timeout)
 
 
-class ClientConnectionStream[StreamControlStartT, StreamDataT](
-    ClientConnection[StreamingClientProtocol]
+class ClientConnectionStream[
+    ClientT: StreamingClientProtocol,
+    StreamControlStartT,
+    StreamDataT
+](
+    ABC,
+    ClientConnection[ClientT]
 ):
     """Base class for streaming clients with device-specific protobuf types."""
 
-    def __init__(self, client: StreamingClientProtocol):
+    def __init__(self, client: ClientT):
         super().__init__(client)
         self.is_streaming = False
 

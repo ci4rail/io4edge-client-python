@@ -5,7 +5,9 @@ from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.analogInTypeA.python.analogInTypeA.v1alpha1.analogInTypeA_pb2 as Pb  # noqa: E501
 
 
-class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
+class Client(
+    ClientConnectionStream[FbClient, Pb.StreamControlStart, Pb.StreamData]
+):
     """
     analogInTypeA functionblock client.
     @param addr: address of io4edge function block (mdns name or "ip:port" address)
@@ -28,8 +30,6 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
             connect=connect
         )
         super().__init__(fb_client)
-        # Type hint for better IDE support
-        self._client: FbClient = self._client
 
     def _create_stream_data(self) -> Pb.StreamData:
         """Create analogInTypeA-specific StreamData message"""
@@ -40,7 +40,9 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         return Pb.StreamControlStart()
 
     @connectable
-    def upload_configuration(self, config: Pb.ConfigurationSet) -> None:
+    def upload_configuration(  # type: ignore[override]
+        self, config: Pb.ConfigurationSet
+    ) -> None:
         """
         Upload the configuration to the analogInTypeA functionblock.
         @param config: configuration to upload
@@ -54,7 +56,9 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         )
 
     @connectable
-    def download_configuration(self) -> Pb.ConfigurationGetResponse:
+    def download_configuration(  # type: ignore[override]
+        self
+    ) -> Pb.ConfigurationGetResponse:
         """
         Download the configuration from the analogInTypeA functionblock.
         @return: actual configuration

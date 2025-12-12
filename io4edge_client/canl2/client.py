@@ -6,7 +6,9 @@ from io4edge_client.functionblock import Client as FbClient
 import io4edge_client.api.canL2.python.canL2.v1alpha1.canL2_pb2 as Pb
 
 
-class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
+class Client(
+    ClientConnectionStream[FbClient, Pb.StreamControlStart, Pb.StreamData]
+):
     """
     canL2 (CAN Layer2) functionblock client.
     @param addr: address of io4edge function block (mdns name or "ip:port" address)

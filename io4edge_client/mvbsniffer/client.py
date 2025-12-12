@@ -6,7 +6,11 @@ import io4edge_client.api.mvbSniffer.python.mvbSniffer.v1.mvbSniffer_pb2 as Pb  
 import io4edge_client.api.mvbSniffer.python.mvbSniffer.v1.telegram_pb2 as TelegramPb  # noqa: E501
 
 
-class Client(ClientConnectionStream[Pb.StreamControlStart, TelegramPb.TelegramCollection]):
+class Client(
+    ClientConnectionStream[
+        FbClient, Pb.StreamControlStart, TelegramPb.TelegramCollection
+    ]
+):
     """
     mvbSniffer functionblock client.
     @param addr: address of io4edge function block (mdns name or "ip:port" address)

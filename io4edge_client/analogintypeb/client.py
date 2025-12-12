@@ -7,7 +7,9 @@ import io4edge_client.api.analogInTypeB.python.analogInTypeB.v1.analogInTypeB_pb
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb  # noqa: E501
 
 
-class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
+class Client(
+    ClientConnectionStream[FbClient, Pb.StreamControlStart, Pb.StreamData]
+):
     """
     analogInTypeB functionblock client.
     @param addr: address of io4edge function block (mdns name or "ip:port" address)

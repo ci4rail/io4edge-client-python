@@ -6,7 +6,7 @@ from io4edge_client.util.exceptions import InvalidStateError, UnknownError
 import io4edge_client.api.ssm.python.ssm.v1.ssm_pb2 as Pb
 
 
-class Client(ClientConnection):
+class Client(ClientConnection[FbClient]):
     """
     System State Manager functionblock client.
 
