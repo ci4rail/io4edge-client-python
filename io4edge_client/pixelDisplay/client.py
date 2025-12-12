@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
+import zlib
+from typing import List, Tuple
 from io4edge_client.base.connections import ClientConnection, connectable
 from io4edge_client.base.logging import io4edge_client_logger
 from io4edge_client.functionblock import Client as FbClient
-import io4edge_client.api.pixelDisplay.python.pixelDisplay.v1alpha1.pixelDisplay_pb2 as Pb
-import zlib
+import io4edge_client.api.pixelDisplay.python.pixelDisplay.v1alpha1.pixelDisplay_pb2 as Pb  # noqa: E501
 
 
 class Client(ClientConnection):
@@ -13,10 +14,21 @@ class Client(ClientConnection):
     @param command_timeout: timeout for commands in seconds
     """
 
-    def __init__(self, addr: str, command_timeout=5, connect=True):
+    def __init__(
+        self,
+        addr: str,
+        command_timeout: int = 5,
+        connect: bool = True
+    ) -> None:
         self._logger = io4edge_client_logger("pixelDisplay.Client")
         self._logger.debug("Initializing pixelDisplay client")
-        super().__init__(FbClient("_io4edge_pixelDisplay._tcp", addr, command_timeout, connect=connect))
+        fb_client = FbClient(
+            "_io4edge_pixelDisplay._tcp", addr, command_timeout,
+            connect=connect
+        )
+        super().__init__(fb_client)
+        # Type hint for better IDE support
+        self._client: FbClient = self._client
 
     @connectable
     def describe(self) -> Pb.ConfigurationDescribeResponse:
@@ -31,7 +43,13 @@ class Client(ClientConnection):
         return fs_response
 
     @connectable
-    def set_pixel_area(self, startx: int, starty: int, endx: int, pixel_area: list):
+    def set_pixel_area(
+        self,
+        startx: int,
+        starty: int,
+        endx: int,
+        pixel_area: List[Tuple[int, int, int]]
+    ) -> None:
         """
         Set the pixel area of the display.
         @param startx: starting x-coordinate of the pixel area
@@ -52,17 +70,19 @@ class Client(ClientConnection):
         fs_cmd.set_pixel_area.end_x = endx
         # compress pixel before sending to the function block
         fs_cmd.set_pixel_area.image = zlib.compress(pixel)
-        self._client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
+        self._client.function_control_set(
+            fs_cmd, Pb.FunctionControlSetResponse()
+        )
 
     @connectable
-    def set_display_off(self):
+    def set_display_off(self) -> None:
         """
-        Set the state of all or a group of output channels.
-        @param states: binary coded map of outputs. 0 means switch off, 1 means switch on, LSB is Channel0
-        @param mask: binary coded map of outputs to be set. 0 means do not change, 1 means change, LSB is Channel0
+        Turn off the display.
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
         fs_cmd = Pb.FunctionControlSet()
         fs_cmd.display_on.on = False
-        self._client.function_control_set(fs_cmd, Pb.FunctionControlSetResponse())
+        self._client.function_control_set(
+            fs_cmd, Pb.FunctionControlSetResponse()
+        )
