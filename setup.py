@@ -23,7 +23,7 @@ def find_all_pbs():
     all_pbs = []
     for root, dirs, files in os.walk("io4edge_client"):
         for file in files:
-            if file.endswith("_pb2.py"):
+            if file.endswith("_pb2.py") or file.endswith("_pb2.pyi"):
                 path = os.path.join(root, file)
                 path = os.sep.join(path.split(os.sep)[1:])
                 all_pbs.append(path)
