@@ -58,7 +58,7 @@ def write_calibration(core_client, channel: int, offset: float, gain: float):
 
 def create_clients(addr: str):
     ana_client = ana.Client(addr + "-anain")
-    core_client = core.new_core_client(addr)
+    core_client = core.CoreClient(addr)
     return ana_client, core_client
 
 
@@ -115,7 +115,7 @@ def main():
             )
         gain[channel] = REF_VOLTAGE/10 / raw_value
         write_calibration(core_client, channel, offset[channel], gain[channel])
-    
+
 
     restart_device(core_client, "Restarting device to apply changes...")
     ana_client, core_client = create_clients(args.addr)

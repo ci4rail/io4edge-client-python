@@ -64,6 +64,7 @@ def main():
     )
 
     dw_client.start_stream(
+        dw.Pb.StreamControlStart(),
         fb.Pb.StreamControlStart(
             bucketSamples=3,
             keepaliveInterval=1000,

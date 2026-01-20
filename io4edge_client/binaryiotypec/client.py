@@ -142,7 +142,7 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         return state, fs_response.single.diag
 
     @connectable
-    def all_inputs(self) -> Pb.FunctionControlGetResponse:
+    def all_inputs(self) -> Pb.GetAllResponse:
         """
         Get the state of all channels, regardless whether they are configured as input or output.
         Each bit in the returned state corresponds to one channel, bit0 being channel 0.

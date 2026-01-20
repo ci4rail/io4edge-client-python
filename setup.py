@@ -36,6 +36,7 @@ setup(
         "protobuf",
         "zeroconf",
     ],
+    python_requires=">=3.12",
     version=readVersion(),
     description="A python library for io4edge devices",
     long_description=read("README.md"),

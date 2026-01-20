@@ -74,7 +74,7 @@ def main():
 
 def telegram_to_str(telegram):
     ret_val = "addr=%03x, " % telegram.address
-    ret_val += "%s" % mvb.TelegramPb._TELEGRAM_TYPE.values_by_number[telegram.type].name
+    ret_val += "%s" % mvb.TelegramPb.Telegram.Type.Name(telegram.type)
     if len(telegram.data) > 0:
         ret_val += ", data="
         for b in telegram.data:
