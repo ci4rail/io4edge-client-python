@@ -29,6 +29,7 @@ def main():
     print("Downloaded config is", config)
 
     ana_client.start_stream(
+        ana.Pb.StreamControlStart(),
         fb.Pb.StreamControlStart(
             bucketSamples=100,
             keepaliveInterval=1000,

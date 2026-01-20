@@ -42,7 +42,7 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         return Pb.StreamControlStart()
 
     def start_stream(
-        self, channel_mask: int, fb_config: FbPb.StreamControl
+        self, channel_mask: int, fb_config: FbPb.StreamControlStart
     ) -> None:
         """
         Start streaming of analogInTypeB data.

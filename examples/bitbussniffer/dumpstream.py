@@ -19,18 +19,23 @@ def main():
 
     bb_client = bbsniffer.Client(args.addr)
 
+    addr_filter = bytearray([0x00] * 32)
+    addr_filter[0] = 0x04  # Only address 0x02
     bb_client.upload_configuration(
         bbsniffer.Pb.ConfigurationSet(
             ignore_crc=True,
             baud_62500=False,
-            address_filter=bytes([0xFF] * 32),
+            #address_filter=bytes([0xFF] * 32),
+            address_filter=bytes(addr_filter),
+            min_frame_length=1,
         )
     )
     bb_client.start_stream(
+        bbsniffer.Pb.StreamControlStart(),
         fb.Pb.StreamControlStart(
             bucketSamples=20,
             keepaliveInterval=1000,
-            bufferedSamples=60,  # Minimum frames with max. length to buffer. If frames are small, much more frames are buffered
+            bufferedSamples=6000,  # Minimum frames with max. length to buffer. If frames are small, much more frames are buffered
             low_latency_mode=args.lowlatency,
         ),
     )
