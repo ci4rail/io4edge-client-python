@@ -59,7 +59,7 @@ def main():
             % (
                 len(stream_data.samples),
                 generic_stream_data.sequence,
-                canl2.Pb._CONTROLLERSTATE.values_by_number[ctrl_state].name,
+                canl2.Pb.ControllerState.Name(ctrl_state),
             )
         )
 
@@ -83,10 +83,10 @@ def sample_to_str(sample):
             ret_val += "%02X " % frame.data[i]
         ret_val += " "
 
-    ret_val += "ERROR: " + canl2.Pb._ERROREVENT.values_by_number[sample.error].name
+    ret_val += "ERROR: " + canl2.Pb.ErrorEvent.Name(sample.error)
     ret_val += (
         " STATE: "
-        + canl2.Pb._CONTROLLERSTATE.values_by_number[sample.controllerState].name
+        + canl2.Pb.ControllerState.Name(sample.controllerState)
     )
     return ret_val
 

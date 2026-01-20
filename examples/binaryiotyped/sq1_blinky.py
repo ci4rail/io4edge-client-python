@@ -71,8 +71,8 @@ def config(binio_client):
                 channelConfig=[
                     binio.Pb.ChannelConfig(
                         channel=channel,
-                        mode=2,  # high-active output
-                        initialValue=0,
+                        mode=binio.Pb.ChannelMode.BINARYIOTYPED_OUTPUT_HIGH_ACTIVE,  # high-active output
+                        initialValue=False,
                         overloadRecoveryTimeoutMs=50,
                         watchdogTimeoutMs=2000,
                     )
@@ -85,7 +85,7 @@ def config(binio_client):
                 channelConfig=[
                     binio.Pb.ChannelConfig(
                         channel=channel,
-                        mode=0,  # high-active input
+                        mode=binio.Pb.ChannelMode.BINARYIOTYPED_INPUT_HIGH_ACTIVE,  # high-active input
                         frittingEnable=True,
                     )
                 ]

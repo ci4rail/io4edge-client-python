@@ -21,7 +21,7 @@ def main():
     for i in range(len(config.channelConfig)):
         print(
             f"Channel                      : {config.channelConfig[i].channel}\n"
-            f"Mode                         : {binio.Pb._CHANNELMODE.values_by_number[config.channelConfig[i].mode].name}\n"
+            f"Mode                         : {binio.Pb.ChannelMode.Name(config.channelConfig[i].mode)}\n"
             f"Current Value                : {config.channelConfig[i].initialValue}\n"
             f"Overload Recovery Timeout ms : {config.channelConfig[i].overloadRecoveryTimeoutMs}\n"
             f"Watchdog Timeout ms          : {config.channelConfig[i].watchdogTimeoutMs}\n"

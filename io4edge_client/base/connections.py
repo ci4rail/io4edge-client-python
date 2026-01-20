@@ -202,7 +202,7 @@ class ClientConnectionStream[StreamControlStartT, StreamDataT](
     def start_stream(
         self,
         config: Optional[StreamControlStartT] = None,
-        fb_config: Optional[FbPb.StreamControl] = None
+        fb_config: Optional[FbPb.StreamControlStart] = None
     ) -> None:
         """
         Start streaming of data.
