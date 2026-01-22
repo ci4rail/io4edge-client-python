@@ -100,16 +100,15 @@ class Client(ClientConnection):
             rsp = fs_response.state_error.response
 
             # exception handling based on response
-            match rsp:
-                case Pb.StateCommandResponseType.STATE_OK:
-                    return
-                case Pb.StateCommandResponseType.INVALID_STATE_ERROR:
-                    raise InvalidStateError(
-                        "Invalid state for setting error: ", msg)
-                case Pb.StateCommandResponseType.UNKNOWN_STATE_ERROR:
-                    raise UnknownError("Unknown error while setting error state: ", msg)
-                case _:
-                    raise RuntimeError("Unhandled response from SSM functionblock")
+            if rsp == Pb.StateCommandResponseType.STATE_OK:
+                return
+            elif rsp == Pb.StateCommandResponseType.INVALID_STATE_ERROR:
+                raise InvalidStateError(
+                    "Invalid state for setting error: ", msg)
+            elif rsp == Pb.StateCommandResponseType.UNKNOWN_STATE_ERROR:
+                raise UnknownError("Unknown error while setting error state: ", msg)
+            else:
+                raise RuntimeError("Unhandled response from SSM functionblock")
 
     @connectable
     def resolve(self, msg: str) -> None:
@@ -134,17 +133,16 @@ class Client(ClientConnection):
             rsp = fs_response.state_error.response
 
             # exception handling based on response
-            match rsp:
-                case Pb.StateCommandResponseType.STATE_OK:
-                    return
-                case Pb.StateCommandResponseType.INVALID_STATE_ERROR:
-                    raise InvalidStateError(
-                        "Invalid state for resolving error: ", msg)
-                case Pb.StateCommandResponseType.UNKNOWN_STATE_ERROR:
-                    raise UnknownError(
-                        "Unknown error while resolving error: ", msg)
-                case _:
-                    raise RuntimeError("Unhandled response from SSM functionblock")
+            if rsp == Pb.StateCommandResponseType.STATE_OK:
+                return
+            elif rsp == Pb.StateCommandResponseType.INVALID_STATE_ERROR:
+                raise InvalidStateError(
+                    "Invalid state for resolving error: ", msg)
+            elif rsp == Pb.StateCommandResponseType.UNKNOWN_STATE_ERROR:
+                raise UnknownError(
+                    "Unknown error while resolving error: ", msg)
+            else:
+                raise RuntimeError("Unhandled response from SSM functionblock")
 
     @connectable
     def fatal(self, msg: str) -> None:
@@ -169,16 +167,15 @@ class Client(ClientConnection):
             rsp = fs_response.state_error.response
 
             # exception handling based on response
-            match rsp:
-                case Pb.StateCommandResponseType.STATE_OK:
-                    return
-                case Pb.StateCommandResponseType.INVALID_STATE_ERROR:
-                    raise InvalidStateError("Invalid state for fatal error: ", msg)
-                case Pb.StateCommandResponseType.UNKNOWN_STATE_ERROR:
-                    raise UnknownError(
-                        "Unknown error while signaling fatal error: ", msg)
-                case _:
-                    raise RuntimeError("Unhandled response from SSM functionblock")
+            if rsp == Pb.StateCommandResponseType.STATE_OK:
+                return
+            elif rsp == Pb.StateCommandResponseType.INVALID_STATE_ERROR:
+                raise InvalidStateError("Invalid state for fatal error: ", msg)
+            elif rsp == Pb.StateCommandResponseType.UNKNOWN_STATE_ERROR:
+                raise UnknownError(
+                    "Unknown error while signaling fatal error: ", msg)
+            else:
+                raise RuntimeError("Unhandled response from SSM functionblock")
 
     @connectable
     def shutdown(self) -> None:
@@ -202,17 +199,16 @@ class Client(ClientConnection):
             rsp = fs_response.host_error.response
 
             # exception handling based on response
-            match rsp:
-                case Pb.HostCommandResponseType.CMD_OK:
-                    return
-                case Pb.HostCommandResponseType.INVALID_CMD_STATE_ERROR:
-                    raise InvalidStateError(
-                        "Invalid state for shutdown signal: ", msg)
-                case Pb.HostCommandResponseType.UNKNOWN_CMD_ERROR:
-                    raise UnknownError(
-                        "Unknown error while signaling shutdown: ", msg)
-                case _:
-                    raise RuntimeError("Unhandled response from SSM functionblock")
+            if rsp == Pb.HostCommandResponseType.CMD_OK:
+                return
+            elif rsp == Pb.HostCommandResponseType.INVALID_CMD_STATE_ERROR:
+                raise InvalidStateError(
+                    "Invalid state for shutdown signal: ", msg)
+            elif rsp == Pb.HostCommandResponseType.UNKNOWN_CMD_ERROR:
+                raise UnknownError(
+                    "Unknown error while signaling shutdown: ", msg)
+            else:
+                raise RuntimeError("Unhandled response from SSM functionblock")
 
     @connectable
     def on(self) -> None:
@@ -236,15 +232,14 @@ class Client(ClientConnection):
             rsp = fs_response.host_error.response
 
             # exception handling based on response
-            match rsp:
-                case Pb.HostCommandResponseType.CMD_OK:
-                    return
-                case Pb.HostCommandResponseType.INVALID_CMD_STATE_ERROR:
-                    raise InvalidStateError("Invalid state for turning on: ", msg)
-                case Pb.HostCommandResponseType.UNKNOWN_CMD_ERROR:
-                    raise UnknownError("Unknown error while turning on: ", msg)
-                case _:
-                    raise RuntimeError("Unhandled response from SSM functionblock")
+            if rsp == Pb.HostCommandResponseType.CMD_OK:
+                return
+            elif rsp == Pb.HostCommandResponseType.INVALID_CMD_STATE_ERROR:
+                raise InvalidStateError("Invalid state for turning on: ", msg)
+            elif rsp == Pb.HostCommandResponseType.UNKNOWN_CMD_ERROR:
+                raise UnknownError("Unknown error while turning on: ", msg)
+            else:
+                raise RuntimeError("Unhandled response from SSM functionblock")
 
     @connectable
     def reboot(self) -> None:
@@ -268,14 +263,13 @@ class Client(ClientConnection):
             rsp = fs_response.host_error.response
 
             # exception handling based on response
-            match rsp:
-                case Pb.HostCommandResponseType.CMD_OK:
-                    return
-                case Pb.HostCommandResponseType.INVALID_CMD_STATE_ERROR:
-                    raise InvalidStateError(
-                        "Invalid state for signaling reboot: ", msg)
-                case Pb.HostCommandResponseType.UNKNOWN_CMD_ERROR:
-                    raise UnknownError(
-                        "Unknown error while signaling reboot: ", msg)
-                case _:
-                    raise RuntimeError("Unhandled response from SSM functionblock")
+            if rsp == Pb.HostCommandResponseType.CMD_OK:
+                return
+            elif rsp == Pb.HostCommandResponseType.INVALID_CMD_STATE_ERROR:
+                raise InvalidStateError(
+                    "Invalid state for signaling reboot: ", msg)
+            elif rsp == Pb.HostCommandResponseType.UNKNOWN_CMD_ERROR:
+                raise UnknownError(
+                    "Unknown error while signaling reboot: ", msg)
+            else:
+                raise RuntimeError("Unhandled response from SSM functionblock")

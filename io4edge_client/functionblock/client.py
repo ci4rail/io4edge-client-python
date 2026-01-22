@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 import threading
 from collections import deque
-from typing import Any
+from typing import Any, Union, Optional
 from io4edge_client.base import Client as BaseClient
 from io4edge_client.base.connections import (
     ClientConnection,
@@ -212,7 +212,7 @@ class Client(ClientConnection[BaseClientProtocol], StreamingClientProtocol):
         self._command(fb_cmd)
         self._logger.info("Stream stopped successfully")
 
-    def read_stream(self, timeout: float | None, stream_data: Any) -> Any:
+    def read_stream(self, timeout: Optional[float], stream_data: Any) -> Any:
         """
         Read next message from stream.
         @param timeout: timeout in seconds
