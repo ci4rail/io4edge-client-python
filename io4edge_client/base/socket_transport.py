@@ -3,7 +3,6 @@ import socket
 import struct
 import select
 import threading
-from typing import Optional
 
 from io4edge_client.base.connections import must_be_connected
 from io4edge_client.base.logging import io4edge_client_logger
@@ -17,7 +16,7 @@ class SocketTransport:
     def __init__(self, host, port, connect=True):
         self._host = host
         self._port = port
-        self._socket: Optional[socket.socket] = None
+        self._socket: socket.socket | None = None
         # Thread-safe connection management with reference counting
         self._connection_lock = threading.RLock()  # Reentrant lock
         self._connection_ref_count = 0
@@ -29,8 +28,9 @@ class SocketTransport:
         """Open connection with reference counting for thread safety."""
         with self._connection_lock:
             self._connection_ref_count += 1
-            logger.debug("Socket connection reference count increased to %d",
-                        self._connection_ref_count)
+            logger.debug(
+                "Socket connection reference count increased to %d",
+                self._connection_ref_count)
 
             if self._socket is None:
                 logger.debug("Opening socket connection to %s:%s",
