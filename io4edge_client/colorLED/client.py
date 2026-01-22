@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-from typing import Tuple
+from typing import Tuple, Any
 from io4edge_client.base.connections import ClientConnection, connectable
 from io4edge_client.base.logging import io4edge_client_logger
 from io4edge_client.functionblock import Client as FbClient
@@ -60,7 +60,7 @@ class Client(ClientConnection):
         )
 
     @connectable
-    def get(self, channel: int) -> Tuple[Pb.Color, bool]:
+    def get(self, channel: int) -> Tuple[Any, bool]:
         """
         Get the state of a single channel.
         @param channel: channel number
