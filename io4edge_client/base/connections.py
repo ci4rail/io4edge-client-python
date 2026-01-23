@@ -1,10 +1,13 @@
 from abc import abstractmethod
 from functools import wraps
-from typing import Tuple, Any, Optional, Protocol
+from typing import Tuple, Any, Protocol, TypeVar, Generic
 import io4edge_client.api.io4edge.python.functionblock.v1alpha1.io4edge_functionblock_pb2 as FbPb  # noqa: E501
 
 
-# Type variables are now defined inline with the new generic syntax
+# Type variables for generic classes
+ClientT = TypeVar('ClientT', bound='BaseClientProtocol')
+StreamControlStartT = TypeVar('StreamControlStartT')
+StreamDataT = TypeVar('StreamDataT')
 
 
 class ConnectionProtocol(Protocol):
@@ -67,7 +70,7 @@ class StreamingClientProtocol(BaseClientProtocol, Protocol):
         """Stop streaming data."""
         ...
 
-    def read_stream(self, timeout: Optional[float], stream_data: Any) -> Any:
+    def read_stream(self, timeout: float | None, stream_data: Any) -> Any:
         """Read next message from stream."""
         ...
 
@@ -139,7 +142,7 @@ class SimpleConnection:
         self.close()
 
 
-class ClientConnection[ClientT: BaseClientProtocol](SimpleConnection):
+class ClientConnection(SimpleConnection, Generic[ClientT]):
     """Connection wrapper with full client functionality."""
 
     def __init__(self, client: ClientT):
@@ -175,8 +178,8 @@ class ClientConnection[ClientT: BaseClientProtocol](SimpleConnection):
         self._client.read_msg(msg, timeout)
 
 
-class ClientConnectionStream[StreamControlStartT, StreamDataT](
-    ClientConnection[StreamingClientProtocol]
+class ClientConnectionStream(
+    ClientConnection[StreamingClientProtocol], Generic[StreamControlStartT, StreamDataT]
 ):
     """Base class for streaming clients with device-specific protobuf types."""
 
@@ -201,8 +204,8 @@ class ClientConnectionStream[StreamControlStartT, StreamDataT](
 
     def start_stream(
         self,
-        config: Optional[StreamControlStartT] = None,
-        fb_config: Optional[FbPb.StreamControlStart] = None
+        config: StreamControlStartT | None = None,
+        fb_config: FbPb.StreamControlStart | None = None
     ) -> None:
         """
         Start streaming of data.
@@ -227,7 +230,7 @@ class ClientConnectionStream[StreamControlStartT, StreamDataT](
 
     def read_stream(
         self,
-        timeout: Optional[float] = None
+        timeout: float | None = None
     ) -> Tuple[Any, StreamDataT]:
         """
         Read the next message from the stream.
