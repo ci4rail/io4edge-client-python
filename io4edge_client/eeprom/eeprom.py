@@ -104,7 +104,6 @@ class Client(ClientConnection):
         fs_response = Pb.FunctionControlSetResponse()
         self._client.function_control_set(fs_cmd, fs_response)
 
-    @property
     @connectable
     def status(self) -> Pb.EepromStatusResponse:
         """
