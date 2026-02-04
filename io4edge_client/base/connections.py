@@ -46,15 +46,15 @@ class BaseClientProtocol(ConnectionProtocol, Protocol):
         """Execute function control get command."""
         ...
 
-    def upload_configuration(self, fs_cmd: Any) -> None:
+    def upload_configuration(self, config) -> None:
         """Upload configuration."""
         ...
 
-    def download_configuration(self, fs_cmd: Any, fs_response: Any) -> None:
+    def download_configuration(self):
         """Download configuration."""
         ...
 
-    def describe(self, fs_cmd: Any, fs_response: Any) -> None:
+    def describe(self) -> Any:
         """Describe function block configuration."""
         ...
 
@@ -157,17 +157,17 @@ class ClientConnection(SimpleConnection, Generic[ClientT]):
         """Execute function control get command."""
         self._client.function_control_get(fs_cmd, fs_response)
 
-    def upload_configuration(self, fs_cmd: Any) -> None:
+    def upload_configuration(self, config) -> None:
         """Upload configuration."""
-        self._client.upload_configuration(fs_cmd)
+        self._client.upload_configuration(config)
 
-    def download_configuration(self, fs_cmd: Any, fs_response: Any) -> None:
+    def download_configuration(self):
         """Download configuration."""
-        self._client.download_configuration(fs_cmd, fs_response)
+        self._client.download_configuration()
 
-    def describe(self, fs_cmd: Any, fs_response: Any) -> None:
+    def describe(self) -> Any:
         """Describe function block configuration."""
-        self._client.describe(fs_cmd, fs_response)
+        return self._client.describe()
 
     def write_msg(self, msg: Any) -> None:
         """Write message to function block."""
@@ -250,17 +250,17 @@ class ClientConnectionStream(
         """Execute function control get command."""
         self._client.function_control_get(fs_cmd, fs_response)
 
-    def upload_configuration(self, fs_cmd: Any) -> None:
+    def upload_configuration(self, config) -> None:
         """Upload configuration."""
-        self._client.upload_configuration(fs_cmd)
+        self._client.upload_configuration(config)
 
-    def download_configuration(self, fs_cmd: Any, fs_response: Any) -> None:
+    def download_configuration(self):
         """Download configuration."""
-        self._client.download_configuration(fs_cmd, fs_response)
+        self._client.download_configuration()
 
-    def describe(self, fs_cmd: Any, fs_response: Any) -> None:
+    def describe(self) -> Any:
         """Describe function block configuration."""
-        self._client.describe(fs_cmd, fs_response)
+        return self._client.describe()
 
     def write_msg(self, msg: Any) -> None:
         """Write message to function block."""
