@@ -68,9 +68,10 @@ class Client(ClientConnection):
             raise ValueError("Read exceeds EEPROM size from start address")
 
         fs_cmd = Pb.FunctionControlGet()
-        fs_cmd.read = Pb.EepromReadRequest()
-        fs_cmd.read.address = start
-        fs_cmd.read.length = length
+        read_request = Pb.EepromReadRequest()
+        read_request.address = start
+        read_request.length = length
+        fs_cmd.read.CopyFrom(read_request)
 
         fs_response = Pb.FunctionControlGetResponse()
         self._client.function_control_get(fs_cmd, fs_response)
@@ -97,9 +98,10 @@ class Client(ClientConnection):
             raise ValueError("Data exceeds EEPROM size from start address")
 
         fs_cmd = Pb.FunctionControlSet()
-        fs_cmd.write = Pb.EepromWriteRequest()
-        fs_cmd.write.address = start
-        fs_cmd.write.data = data
+        write_request = Pb.EepromWriteRequest()
+        write_request.address = start
+        write_request.data = data
+        fs_cmd.write.CopyFrom(write_request)
 
         fs_response = Pb.FunctionControlSetResponse()
         self._client.function_control_set(fs_cmd, fs_response)
@@ -114,8 +116,10 @@ class Client(ClientConnection):
         @raises TimeoutError: if the command times out
         @raises ConnectionError: if not connected to the device
         """
+        fs_cmd = Pb.FunctionControlGet()
+        fs_cmd.status = True
         fs_response = Pb.FunctionControlGetResponse()
-        self._client.function_control_get(Pb.FunctionControlGet(), fs_response)
+        self._client.function_control_get(fs_cmd, fs_response)
 
         if fs_response.status_response is not None:
             return fs_response.status_response
