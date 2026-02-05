@@ -50,14 +50,6 @@ class BaseClientProtocol(ConnectionProtocol, Protocol):
         """Upload configuration."""
         ...
 
-    def download_configuration(self):
-        """Download configuration."""
-        ...
-
-    def describe(self) -> Any:
-        """Describe function block configuration."""
-        ...
-
 
 class StreamingClientProtocol(BaseClientProtocol, Protocol):
     """Protocol for streaming functionblock clients."""
@@ -161,14 +153,6 @@ class ClientConnection(SimpleConnection, Generic[ClientT]):
         """Upload configuration."""
         self._client.upload_configuration(config)
 
-    def download_configuration(self):
-        """Download configuration."""
-        self._client.download_configuration()
-
-    def describe(self) -> Any:
-        """Describe function block configuration."""
-        return self._client.describe()
-
     def write_msg(self, msg: Any) -> None:
         """Write message to function block."""
         self._client.write_msg(msg)
@@ -253,14 +237,6 @@ class ClientConnectionStream(
     def upload_configuration(self, config) -> None:
         """Upload configuration."""
         self._client.upload_configuration(config)
-
-    def download_configuration(self):
-        """Download configuration."""
-        self._client.download_configuration()
-
-    def describe(self) -> Any:
-        """Describe function block configuration."""
-        return self._client.describe()
 
     def write_msg(self, msg: Any) -> None:
         """Write message to function block."""
