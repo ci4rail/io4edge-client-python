@@ -84,16 +84,16 @@ class Client(ClientConnection[BaseClientProtocol], StreamingClientProtocol):
         self._logger.debug("Functionblock client connection closed")
 
     @connectable
-    def upload_configuration(self, fs_cmd: Any) -> None:
+    def upload_configuration(self, config: Any) -> None:
         """
         Upload configuration to io4edge function block.
-        @param fs_cmd: protobuf message with the function specific configuration
+        @param config: protobuf message with the function specific configuration
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
         """
         self._logger.debug("Uploading configuration to functionblock")
         fs_any = AnyPb.Any()
-        fs_any.Pack(fs_cmd)
+        fs_any.Pack(config)
 
         fb_cmd = FbPb.Command()
         fb_cmd.Configuration.functionSpecificConfigurationSet.CopyFrom(fs_any)
