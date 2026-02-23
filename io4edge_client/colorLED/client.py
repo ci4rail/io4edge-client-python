@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-from tabnanny import check
-from typing import Tuple, Any
+from typing import Tuple
 from io4edge_client.base.connections import ClientConnection, connectable
 from io4edge_client.base.logging import io4edge_client_logger
 from io4edge_client.functionblock import Client as FbClient
@@ -43,11 +42,17 @@ class Client(ClientConnection):
         return fs_response
 
     @connectable
-    def set(self, channel: int, color: Pb.Color | Pb.RGBColor | Tuple[int, int, int], blink: bool) -> None:
+    def set(
+            self,
+            channel: int,
+            color: Pb.Color | Pb.RGBColor | Tuple[int, int, int] | str,
+            blink: bool
+    ) -> None:
         """
         Set the state of a single output.
         @param channel: channel number
-        @param color: color to set as Pb.Color, Pb.RGBColor, or a tuple of (red, green, blue) values
+        @param color: color to set as Pb.Color, Pb.RGBColor, a tuple of
+            (red, green, blue) values, or a string giving a hex value (e.g. "#FF0000" for red)
         @param blink: if true the LED should blink
         @raises RuntimeError: if the command fails
         @raises TimeoutError: if the command times out
@@ -63,6 +68,18 @@ class Client(ClientConnection):
         elif isinstance(color, tuple) and len(color) == 3:
             self._check_rgb_range(color)
             fs_cmd.rgb.red, fs_cmd.rgb.green, fs_cmd.rgb.blue = color
+        elif isinstance(color, str) and color.startswith("#") \
+                and len(color) == 7:
+            try:
+                r = int(color[1:3], 16)
+                g = int(color[3:5], 16)
+                b = int(color[5:7], 16)
+                self._check_rgb_range((r, g, b))
+                fs_cmd.rgb.red = r
+                fs_cmd.rgb.green = g
+                fs_cmd.rgb.blue = b
+            except ValueError:
+                raise ValueError("Invalid color format")
         else:
             raise ValueError("Invalid color type")
         fs_cmd.blink = blink
