@@ -60,7 +60,7 @@ class Client(ClientConnection):
         """
         fs_cmd = Pb.FunctionControlSet()
         fs_cmd.channel = channel
-        if isinstance(color, Pb.Color):
+        if isinstance(color, int) and color in Pb.Color.values():
             fs_cmd.color = color
         elif isinstance(color, Pb.RGBColor):
             self._check_rgb_range(color)
