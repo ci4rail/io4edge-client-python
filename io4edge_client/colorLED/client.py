@@ -104,12 +104,12 @@ class Client(ClientConnection):
 
     def _check_rgb_range(self, color: Pb.RGBColor | Tuple[int, int, int]) -> None:
         if isinstance(color, Pb.RGBColor):
-            for c in (color.red, color.green, color.blue):
-                if not (0 <= c <= 255):
-                    raise ValueError("RGB color values must be in the range 0-255")
+            components = (color.red, color.green, color.blue)
         elif isinstance(color, tuple) and len(color) == 3:
-            for c in color:
-                if not (0 <= c <= 255):
-                    raise ValueError("RGB color values must be in the range 0-255")
+            components = color
         else:
             raise ValueError("Invalid color type")
+
+        for c in components:
+            if not (0 <= c <= 255):
+                raise ValueError("RGB color values must be in the range 0-255")
