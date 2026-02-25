@@ -66,6 +66,12 @@ class Client(ClientConnection):
             self._check_rgb_range(color)
             fs_cmd.rgb.CopyFrom(color)
         elif isinstance(color, tuple) and len(color) == 3:
+            # Ensure tuple components are plain integers (excluding bool) before assignment
+            for c in color:
+                if isinstance(c, bool) or not isinstance(c, int):
+                    raise ValueError(
+                        "RGB tuple components must be integers between 0 and 255"
+                    )
             self._check_rgb_range(color)
             fs_cmd.rgb.red, fs_cmd.rgb.green, fs_cmd.rgb.blue = color
         elif isinstance(color, str) and color.startswith("#") \
