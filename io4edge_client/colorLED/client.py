@@ -78,10 +78,18 @@ class Client(ClientConnection):
                 fs_cmd.rgb.red = r
                 fs_cmd.rgb.green = g
                 fs_cmd.rgb.blue = b
-            except ValueError:
-                raise ValueError("Invalid color format")
+            except ValueError as e:
+                raise ValueError(
+                    f"Invalid hex color string {color!r}. Expected format "
+                    "'#RRGGBB' with hexadecimal digits."
+                ) from e
         else:
-            raise ValueError("Invalid color type")
+            raise ValueError(
+                "Invalid color parameter of type "
+                f"{type(color).__name__}: {color!r}. Expected one of: "
+                "Pb.Color, Pb.RGBColor, a (r, g, b) tuple of ints 0–255, "
+                "or a '#RRGGBB' hex color string."
+            )
         fs_cmd.blink = blink
         self._client.function_control_set(
             fs_cmd, Pb.FunctionControlSetResponse()
