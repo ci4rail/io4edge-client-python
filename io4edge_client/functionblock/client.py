@@ -222,7 +222,9 @@ class Client(ClientConnection[BaseClientProtocol], StreamingClientProtocol):
         """
         self._logger.debug("Reading stream data with timeout=%s", timeout)
         if not self._stream_queue_sema.acquire(timeout=timeout):
-            self._logger.warning("Stream read timeout - no data available")
+            self._logger.debug(
+                "Stream read timeout - no data available within %s seconds",
+                timeout)
             raise TimeoutError("No data available within timeout")
         with self._stream_queue_mutex:
             data = self._stream_queue.popleft()
