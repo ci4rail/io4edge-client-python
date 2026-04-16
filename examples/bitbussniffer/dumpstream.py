@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
+import time
 import io4edge_client.bitbussniffer as bbsniffer
 import io4edge_client.functionblock as fb
 import argparse
@@ -34,7 +35,7 @@ def main():
         bbsniffer.Pb.StreamControlStart(),
         fb.Pb.StreamControlStart(
             bucketSamples=20,
-            keepaliveInterval=1000,
+            keepaliveInterval=3000,
             bufferedSamples=60,  # Minimum frames with max. length to buffer. If frames are small, much more frames are buffered
             low_latency_mode=args.lowlatency,
         ),
@@ -48,11 +49,11 @@ def main():
             continue
 
         print(
-            "Received %d samples, seq=%d, ts=%d"
-            % (
+            "%s: Received %d samples, seq=%d, ts=%f"
+            % ( time.time(),
                 len(stream_data.samples),
                 generic_stream_data.sequence,
-                generic_stream_data.deliveryTimestampUs,
+                generic_stream_data.deliveryTimestampUs/1000000.0,
             )
         )
 

@@ -1,0 +1,55 @@
+[build-system]
+requires = [
+    "setuptools>=69",
+    "setuptools-scm[toml]>=8",
+    "wheel"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "io4edge_client"
+dynamic = ["version"]
+description = "Python client for io4edge devices"
+readme = "README.md"
+requires-python = ">=3.10"
+
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+
+authors = [
+  {name = "Ci4Rail GmbH", email = "engineering@ci4rail.com"},
+  {name = "EKF GmbH", email = "info@ekf.com"}
+]
+
+dependencies = [
+    "protobuf",
+    "zeroconf"
+]
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/ci4rail/io4edge-client-python"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["io4edge_client*"]
+
+[tool.setuptools.package-data]
+io4edge_client = [
+  "api/**/*.py",
+  "api/**/*.pyi",
+  "py.typed",
+]
+
+[tool.setuptools_scm]
+version_scheme = "guess-next-dev"
+local_scheme = "no-local-version"
+version_file = "io4edge_client/_version.py"
+version_file_template = """
+version = {version_tuple}
+VERSION = ".".join(str(x) for x in version)
+"""
