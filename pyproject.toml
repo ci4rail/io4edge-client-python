@@ -50,6 +50,7 @@ version_scheme = "guess-next-dev"
 local_scheme = "no-local-version"
 version_file = "io4edge_client/_version.py"
 version_file_template = """
+# SPDX-License-Identifier: Apache-2.0
 version = {version_tuple}
 VERSION = ".".join(str(x) for x in version)
 """
