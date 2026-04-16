@@ -11,8 +11,10 @@ from .bitbussniffer import Client as BitbusSnifferClient
 from .canl2 import Client as CanL2Client
 from .colorLED import Client as ColorLEDClient
 from .digiwave import Client as DigiwaveClient
+from .eeprom import Client as EepromClient
 from .mvbsniffer import Client as MvbSnifferClient
 from .pixelDisplay import Client as PixelDisplayClient
+from .ssm import Client as SsmClient
 # from .watchdog import Client as WatchdogClient
 
 # Import core clients
@@ -20,7 +22,7 @@ from .core import CoreClient
 from .functionblock import Client as FunctionblockClient
 
 # Version information
-from .version import version
+from ._version import version, VERSION
 
 __all__ = [
     # Device-specific clients
@@ -34,14 +36,16 @@ __all__ = [
     "CanL2Client",
     "ColorLEDClient",
     "DigiwaveClient",
+    "EepromClient",
     "MvbSnifferClient",
     "PixelDisplayClient",
-    # "WatchdogClient",
+    "SsmClient",
 
     # Core clients
     "CoreClient",
     "FunctionblockClient",
 
     # Version
-    "version"
+    "version",
+    "VERSION"
 ]

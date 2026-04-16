@@ -54,12 +54,12 @@ docker run --network=host <your-docker-image-name>:<version> <parameters-to-your
 ## Releasing
 
 To release a new version of the package, follow these steps:
-1. Update the version number in `io4edge-client/version.py`.
-2. Create a new git tag with the same version number, e.g. `git tag v1.0.0`.
-3. Push the tag to the remote repository: `git push --tags`.
+
+1. Create a new git tag with a version number, e.g. `git tag v1.0.0`.
+2. Push the tag to the remote repository: `git push --tags`.
 
 ## Copyright
 
-Copyright © 2021-2025 Ci4Rail GmbH <engineering@ci4rail.com>
+Copyright © 2021-2026 Ci4Rail GmbH <engineering@ci4rail.com>
 
 io4edge_client_python package is released under Apache 2.0 License, see [LICENSE](LICENSE) for details.
