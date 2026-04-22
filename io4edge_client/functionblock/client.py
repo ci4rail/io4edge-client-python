@@ -273,7 +273,7 @@ class Client(ClientConnection[BaseClientProtocol], StreamingClientProtocol):
                 # Only exit on timeout if explicitly told to stop
                 if self._read_thread_stop:
                     break
-                logger.warning("Stream read timeout - no data available")
+                logger.debug("Stream read timeout - no data available")
                 continue
             except (ConnectionError, ConnectionAbortedError,
                     ConnectionResetError, RuntimeError) as e:
