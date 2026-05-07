@@ -75,7 +75,6 @@ def connectable(func):
     - Add logging
     - Add timeout handling
     - Check client protocol implementation
-    - support usage on classes which implement context manager
 
     Warnings
     --------
