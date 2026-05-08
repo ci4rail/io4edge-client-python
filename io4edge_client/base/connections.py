@@ -75,7 +75,10 @@ def connectable(func):
     - Add logging
     - Add timeout handling
     - Check client protocol implementation
-    - support usage on classes which implement context manager
+
+    Warnings
+    --------
+    This decorator assumes that the class on which it is applied implements the context manager protocol (i.e., has `__enter__` and `__exit__` methods).
     """
 
     @wraps(func)
@@ -83,7 +86,7 @@ def connectable(func):
         if self.connected:
             return func(self, *args, **kwargs)
         else:
-            with self._client:
+            with self:
                 return func(self, *args, **kwargs)
 
     return connect
