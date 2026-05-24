@@ -48,6 +48,7 @@ class Client(ClientConnection[BaseClientProtocol], StreamingClientProtocol):
         self._cmd_mutex = (
             threading.Lock()
         )  # Ensures only one command is pending at a time
+        self._ctrl_mutex = threading.Lock()  # Protects command context and response
         self._cmd_response = None
         self._cmd_context = 0  # sequence number for command context
         self._cmd_timeout = command_timeout
@@ -56,16 +57,21 @@ class Client(ClientConnection[BaseClientProtocol], StreamingClientProtocol):
             self.open()
 
     def open(self) -> None:
-        self._logger.debug("Opening functionblock client connection")
-        if not self.connected:
-            self._client.open()
-            self._read_thread_stop = False
-            self._read_thread_id = threading.Thread(
-                target=self._read_thread, daemon=True
-            )
-            self._read_thread_id.start()
-            self._logger.debug("Functionblock client connection opened and "
-                              "read thread started")
+        with self._ctrl_mutex:
+            self._logger.debug("Opening functionblock client connection")
+            if not self.connected:
+                self._client.open()
+                self._read_thread_stop = False
+                self._read_thread_id = threading.Thread(
+                    target=self._read_thread, daemon=True
+                )
+                self._read_thread_id.start()
+                self._logger.debug("Functionblock client connection opened and "
+                                "read thread started")
+            else:
+                self._client.register()
+                self._logger.debug("Functionblock client connection already open, "
+                                "registered for use.")
 
     @property
     def connected(self):
@@ -76,12 +82,13 @@ class Client(ClientConnection[BaseClientProtocol], StreamingClientProtocol):
         Close the connection to the function block, terminate read thread.
         After calling this method, the object is no longer usable.
         """
-        self._logger.debug("Closing functionblock client connection")
-        self._read_thread_stop = True
-        self._client.close()  # This closes the socket, which will interrupt the read
-        if hasattr(self, '_read_thread_id'):
-            self._read_thread_id.join()  # Thread should exit when socket operations fail
-        self._logger.debug("Functionblock client connection closed")
+        with self._ctrl_mutex:
+            self._logger.debug("Closing functionblock client connection")
+            self._read_thread_stop = True
+            self._client.close()  # This closes the socket, which will interrupt the read
+            if hasattr(self, '_read_thread_id'):
+                self._read_thread_id.join()  # Thread should exit when socket operations fail
+            self._logger.debug("Functionblock client connection closed")
 
     @connectable
     def upload_configuration(self, config: Any) -> None:
