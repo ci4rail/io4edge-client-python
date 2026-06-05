@@ -13,7 +13,7 @@ class Client(ClientConnection):
 
     def __init__(self, addr: str, command_timeout=5, connect=True):
         super().__init__(FbClient(
-            "_io4edge_colorLED._tcp", addr, command_timeout, connect=connect
+            "_io4edge_programmablePsu._tcp", addr, command_timeout, connect=connect
         ))
 
     @connectable
