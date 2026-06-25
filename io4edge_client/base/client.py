@@ -69,17 +69,25 @@ class Client(ClientConnection):
         :param service: service name with protocol (e.g. S101-IOU01-USB-EXT-1._io4edge-core._tcp)
         """
         zeroconf = Zeroconf()
-        instance, service = Client._split_service(service)
+        try:
+            instance, service = Client._split_service(service)
 
-        service += ".local."
-        instance = instance + "." + service
+            service += ".local."
+            instance = instance + "." + service
 
-        # print("Looking for service %s %s" % (service, instance))
+            # print("Looking for service %s %s" % (service, instance))
 
-        info = zeroconf.get_service_info(type_=service, name=instance)
-        if info:
-            rv = info.parsed_addresses()[0], info.port
-        else:
-            rv = None, 0
-        zeroconf.close()
-        return rv
+            info = zeroconf.get_service_info(type_=service, name=instance)
+            if not info:
+                return None, 0
+
+            addresses = info.parsed_addresses()
+            if not addresses:
+                return None, 0
+
+            return addresses[0], info.port
+        finally:
+            zeroconf.close()
+            loop = getattr(zeroconf, "loop", None)
+            if loop is not None and not loop.is_closed() and not loop.is_running():
+                loop.close()
