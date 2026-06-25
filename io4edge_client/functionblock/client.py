@@ -48,7 +48,7 @@ class Client(ClientConnection[BaseClientProtocol], StreamingClientProtocol):
         self._cmd_mutex = (
             threading.Lock()
         )  # Ensures only one command is pending at a time
-        self._ctrl_mutex = threading.Lock()  # Protects command context and response
+        self._ctrl_mutex = threading.RLock()  # Protects command context and response
         self._cmd_response = None
         self._cmd_context = 0  # sequence number for command context
         self._cmd_timeout = command_timeout
