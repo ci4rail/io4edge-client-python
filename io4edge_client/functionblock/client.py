@@ -53,6 +53,7 @@ class Client(ClientConnection[BaseClientProtocol], StreamingClientProtocol):
         self._cmd_context = 0  # sequence number for command context
         self._cmd_timeout = command_timeout
         self._read_thread_stop = True
+        self._open_count = 0
         if connect:
             self.open()
 
@@ -72,6 +73,7 @@ class Client(ClientConnection[BaseClientProtocol], StreamingClientProtocol):
                 self._client.register()
                 self._logger.debug("Functionblock client connection already open, "
                                 "registered for use.")
+            self._open_count += 1
 
     @property
     def connected(self):
@@ -84,11 +86,19 @@ class Client(ClientConnection[BaseClientProtocol], StreamingClientProtocol):
         """
         with self._ctrl_mutex:
             self._logger.debug("Closing functionblock client connection")
-            self._read_thread_stop = True
-            self._client.close()  # This closes the socket, which will interrupt the read
-            if hasattr(self, '_read_thread_id'):
-                self._read_thread_id.join()  # Thread should exit when socket operations fail
-            self._logger.debug("Functionblock client connection closed")
+            if self._open_count > 0:
+                self._open_count -= 1
+            self._client.close()  # Decrement transport reference count
+            if self._open_count <= 0:
+                self._open_count = 0
+                self._read_thread_stop = True
+                if hasattr(self, '_read_thread_id'):
+                    self._read_thread_id.join()  # Thread should exit when socket operations fail
+                self._logger.debug("Functionblock client connection closed")
+            else:
+                self._logger.debug(
+                    "Functionblock client still in use by %d references, "
+                    "keeping read thread running", self._open_count)
 
     @connectable
     def upload_configuration(self, config: Any) -> None:
