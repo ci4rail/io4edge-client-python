@@ -88,6 +88,3 @@ class Client(ClientConnection):
             return addresses[0], info.port
         finally:
             zeroconf.close()
-            loop = getattr(zeroconf, "loop", None)
-            if loop is not None and not loop.is_closed() and not loop.is_running():
-                loop.close()
