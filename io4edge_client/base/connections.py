@@ -26,6 +26,10 @@ class ConnectionProtocol(Protocol):
         """Close the client connection."""
         ...
 
+    def register(self) -> None:
+        """Register a new user of the connection (for reference counting)."""
+        ...
+
 
 class BaseClientProtocol(ConnectionProtocol, Protocol):
     """Protocol for basic client operations."""
@@ -121,16 +125,16 @@ class SimpleConnection:
         return self._client is not None and self._client.connected
 
     def open(self) -> None:
-        if not self.connected:
-            self._client.open()
+        self._client.open()
 
     def close(self) -> None:
-        if self.connected:
-            self._client.close()
+        self._client.close()
+    
+    def register(self) -> None:
+        self._client.register()
 
     def __enter__(self):
-        if not self.connected:
-            self.open()
+        self.open()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):

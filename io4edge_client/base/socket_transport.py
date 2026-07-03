@@ -27,11 +27,6 @@ class SocketTransport:
     def open(self):
         """Open connection with reference counting for thread safety."""
         with self._connection_lock:
-            self._connection_ref_count += 1
-            logger.debug(
-                "Socket connection reference count increased to %d",
-                self._connection_ref_count)
-
             if self._socket is None:
                 logger.debug("Opening socket connection to %s:%s",
                            self._host, self._port)
@@ -42,6 +37,16 @@ class SocketTransport:
             else:
                 logger.debug("Socket already connected to %s:%s, "
                            "reference count increased", self._host, self._port)
+            self.register()  # Increment reference count for this connection
+
+    def register(self):
+        with self._connection_lock:
+            if not self.connected:
+                raise ConnectionError("Cannot register: socket is not connected")
+            self._connection_ref_count += 1
+            logger.debug(
+                "Socket connection reference count increased to %d",
+                self._connection_ref_count)
 
     @property
     def connected(self):
@@ -97,7 +102,7 @@ class SocketTransport:
             try:
                 self._socket.sendall(hdr + data)
             except OSError as e:
-                raise ConnectionError("Socket error during sendall") from e
+                raise ConnectionError(f"Socket error during sendall: {e}") from e
         else:
             raise ConnectionError("Socket is not connected")
 
