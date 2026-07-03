@@ -23,7 +23,7 @@ authors = [
 
 dependencies = [
     "protobuf",
-    "zeroconf"
+    "zeroconf>=0.150"
 ]
 
 classifiers = [
