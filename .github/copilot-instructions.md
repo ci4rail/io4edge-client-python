@@ -58,6 +58,16 @@ generic_data, specific_data = client.read_stream(timeout=1.0)
 - Unit tests in `tests/` focus on parsing and address handling
 - Integration examples in `examples/` serve as functional tests
 - Use `python -m unittest` for running tests
+- Run a focused test first when changing protocol or address handling, then run `python -m unittest discover -s tests`.
+- Keep tests independent of physical devices; use local sockets, fixtures, or existing examples for integration checks.
+
+## Development and Packaging
+- The package supports Python 3.10+ and uses setuptools with `setuptools-scm`; derive versions from Git tags rather than editing `_version.py`.
+- The package root is `io4edge_client/`; examples are executable integration references, not part of the installed package.
+- Use absolute imports for protobuf modules and preserve the generated API layout under `io4edge_client/api/`.
+- When `.proto` inputs change, regenerate the API through the `io4edge_client/api/` submodule's documented `make` workflow. Do not hand-edit generated protobuf files.
+- Run checks from the repository root so package discovery and generated API imports match CI.
+- Docker examples require host networking for mDNS discovery; do not silently replace service discovery with a hard-coded address.
 
 ## Critical Implementation Details
 
@@ -79,6 +89,8 @@ Base client automatically handles:
 ## Protobuf Code Generation
 
 The `io4edge_client/api/` directory contains a git submodule with protobuf definitions. Use `make` in that directory to regenerate Python protobuf code when proto files change.
+
+See the [README](../README.md) for installation, Docker, supported function blocks, and release workflow details.
 
 ## Docker Deployment
 
