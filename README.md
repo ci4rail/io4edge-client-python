@@ -33,6 +33,26 @@ pip3 install io4edge_client
 
 See [examples in github repo](https://github.com/ci4rail/io4edge-client-python) for usage examples.
 
+Core clients automatically select HTTPS REST when `port % 1000 == 443`
+(for example, 443 or 8443), including ports discovered through mDNS.
+Other ports use protobuf/TCP.
+
+```python
+from io4edge_client.core import CoreClient
+
+with CoreClient("192.168.200.1:443", password="device-password") as client:
+    print(client.identify_firmware())
+```
+
+HTTPS uses Basic authentication with username `io4edge` and an empty password
+unless supplied. As in the Go REST client, TLS certificate verification is
+disabled to accept self-signed device certificates. No additional dependencies
+are required. REST supports hardware identification/programming, firmware
+identification/upload, restart, persistent parameters (including `namespace.name`),
+parameter sets, API password changes, and REPL commands. Firmware upload accepts
+raw bytes and an optional percentage progress callback; the device restarts after
+the final chunk. Reset reason is not implemented by the REST API.
+
 
 ### Running in Docker
 
