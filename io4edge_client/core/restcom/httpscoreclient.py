@@ -8,21 +8,22 @@ from typing import Callable
 from urllib.parse import quote, urlencode
 
 from ..types import FirmwareIdentification, HardwareIdentification
+from ..coreclient import CoreClient
 
 
 class ParameterIsReadProtectedError(RuntimeError):
     """The device forbids reading a persistent parameter."""
 
 
-class HttpsCoreClient:
+class HttpsCoreClient(CoreClient):
     """Core REST client using Basic authentication with user ``io4edge``.
 
-    Like the Go client, accepts self-signed device certificates. Connections
-    are opened per request; ``connect`` is accepted for factory compatibility.
+    Accepts self-signed device certificates. Connections
+    are opened per request; ``connect`` is ignored.
     Command timeouts apply to socket operations, including firmware chunks.
     """
 
-    def __init__(self, addr: str, command_timeout=5, connect=True, password=""):
+    def __init__(self, addr: str, command_timeout=8, connect=True, password=""):
         self._addr = addr
         self._command_timeout = command_timeout
         self._password = password

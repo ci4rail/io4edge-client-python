@@ -3,10 +3,11 @@ from io4edge_client.base.logging import io4edge_client_logger
 import io4edge_client.api.io4edge.python.core_api.v1alpha2.io4edge_core_api_pb2 as Pb
 from io4edge_client.base.connections import ClientConnection, connectable
 from ..types import FirmwareIdentification, HardwareIdentification
+from ..coreclient import CoreClient
 from typing import Callable
 
 
-class PbCoreClient(ClientConnection):
+class PbCoreClient(CoreClient, ClientConnection):
     """
     io4edge core client using protobuf communication.
     @param addr: address of io4edge function block (mdns name or "ip:port" address)
@@ -83,7 +84,11 @@ class PbCoreClient(ClientConnection):
         )
 
     @connectable
-    def load_firmware(self, firmware: bytes, progress_cb: Callable[[float], None] | None) -> None:
+    def load_firmware(
+        self,
+        firmware: bytes,
+        progress_cb: Callable[[float], None] | None = None,
+    ) -> None:
         """
         Load firmware to io4edge device.
         `firmware` must be the raw binary file, not a .fwpkg file.

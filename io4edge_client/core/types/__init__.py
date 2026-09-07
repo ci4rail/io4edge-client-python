@@ -15,7 +15,7 @@ class HardwareIdentification:
     Class to hold hardware identification information.
     Contains the title and version of the hardware.
     """
-    def __init__(self, root_article: str, major_version: str, serial_number: str):
+    def __init__(self, root_article: str, major_version: int, serial_number: str):
         self.root_article = root_article
         self.major_version = major_version
         self.serial_number = serial_number

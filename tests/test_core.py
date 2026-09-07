@@ -1,14 +1,25 @@
 # SPDX-License-Identifier: Apache-2.0
 import base64
+from io import BytesIO
 import json
+from pathlib import Path
+import tarfile
+import tempfile
 import unittest
 from unittest.mock import patch
 
-from io4edge_client.core import CoreClient
+from io4edge_client.core import CoreClient, FirmwareAlreadyPresentError
+from io4edge_client.core.coreclient import CoreClient as CoreClientBase
 from io4edge_client.core.restcom import HttpsCoreClient, ParameterIsReadProtectedError
 
 
 class TestCoreFactory(unittest.TestCase):
+    def test_returns_core_client(self):
+        self.assertIsInstance(
+            CoreClient('localhost:443', connect=False), CoreClientBase)
+        self.assertIsInstance(
+            CoreClient('localhost:9999', connect=False), CoreClientBase)
+
     def test_transport_selection(self):
         with patch('io4edge_client.core.coreclient.PbCoreClient') as protobuf:
             for port in (443, 1443, 8443):
@@ -127,6 +138,102 @@ class TestHttpsCore(unittest.TestCase):
         self.assertEqual(self.client._password, 'new')
         with self.assertRaises(NotImplementedError):
             self.client.get_reset_reason()
+
+
+class TestFirmwarePackage(unittest.TestCase):
+    @staticmethod
+    def package(manifest=None, firmware=b'firmware'):
+        if manifest is None:
+            manifest = {
+                'name': 'application',
+                'version': '2.0.0',
+                'file': 'firmware.bin',
+                'compatibility': {'hw': 's101-iou', 'major_revs': [1, 2]},
+            }
+        result = BytesIO()
+        with tarfile.open(fileobj=result, mode='w') as archive:
+            for name, data in (
+                ('./manifest.json', json.dumps(manifest).encode()),
+                ('./firmware.bin', firmware),
+            ):
+                info = tarfile.TarInfo(name)
+                info.size = len(data)
+                archive.addfile(info, BytesIO(data))
+        return result.getvalue()
+
+    def setUp(self):
+        self.client = HttpsCoreClient('localhost:443', connect=False)
+        self.firmware_id = type('FirmwareId', (), {
+            'title': 'fw-other', 'version': '1.0.0'})()
+        self.hardware_id = type('HardwareId', (), {
+            'root_article': 'S101-IOU01', 'major_version': 2})()
+
+    def test_loads_package_from_bytes(self):
+        with patch.object(self.client, 'identify_firmware',
+                          return_value=self.firmware_id), \
+             patch.object(self.client, 'identify_hardware',
+                          return_value=self.hardware_id), \
+             patch.object(self.client, 'load_firmware') as load:
+            progress = object()
+            self.client.load_firmware_package(
+                self.package(firmware=b'binary'), progress)
+            load.assert_called_once_with(b'binary', progress)
+
+    def test_loads_package_from_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            package_path = Path(directory) / 'firmware.fwpkg'
+            package_path.write_bytes(self.package(firmware=b'binary'))
+            with patch.object(self.client, 'identify_firmware',
+                              return_value=self.firmware_id), \
+                 patch.object(self.client, 'identify_hardware',
+                              return_value=self.hardware_id), \
+                 patch.object(self.client, 'load_firmware') as load:
+                self.client.load_firmware_package(package_path)
+                load.assert_called_once_with(b'binary', None)
+
+    def test_rejects_incompatible_hardware(self):
+        self.hardware_id.root_article = 'S102-IOU01'
+        with patch.object(self.client, 'identify_firmware',
+                          return_value=self.firmware_id), \
+             patch.object(self.client, 'identify_hardware',
+                          return_value=self.hardware_id), \
+             patch.object(self.client, 'load_firmware') as load:
+            with self.assertRaisesRegex(ValueError, 'not suitable'):
+                self.client.load_firmware_package(self.package())
+            load.assert_not_called()
+
+        self.hardware_id.root_article = 'S101-IOU01'
+        self.hardware_id.major_version = 3
+        with patch.object(self.client, 'identify_firmware',
+                          return_value=self.firmware_id), \
+             patch.object(self.client, 'identify_hardware',
+                          return_value=self.hardware_id):
+            with self.assertRaisesRegex(ValueError, 'version 3'):
+                self.client.load_firmware_package(self.package())
+
+    def test_rejects_firmware_already_present(self):
+        self.firmware_id.title = 'FW-APPLICATION'
+        self.firmware_id.version = '2.0.0'
+        with patch.object(self.client, 'identify_firmware',
+                          return_value=self.firmware_id), \
+             patch.object(self.client, 'identify_hardware',
+                          return_value=self.hardware_id), \
+             patch.object(self.client, 'load_firmware') as load:
+            with self.assertRaises(FirmwareAlreadyPresentError):
+                self.client.load_firmware_package(self.package())
+            load.assert_not_called()
+
+    def test_rejects_invalid_package(self):
+        with self.assertRaisesRegex(ValueError, 'Cannot read firmware package'):
+            self.client.load_firmware_package(b'not a tar')
+
+        manifest = {
+            'name': 'application', 'version': '2.0.0',
+            'file': 'firmware.bin',
+            'compatibility': {'hw': 's101-iou', 'major_revs': []},
+        }
+        with self.assertRaisesRegex(ValueError, 'major_revs'):
+            self.client.load_firmware_package(self.package(manifest))
 
 
 if __name__ == '__main__':
