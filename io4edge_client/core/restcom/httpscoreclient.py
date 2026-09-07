@@ -101,13 +101,13 @@ class HttpsCoreClient(CoreClient):
 
     def load_firmware(self, firmware: bytes,
                       progress_cb: Callable[[float], None] | None = None) -> None:
-        """Upload raw firmware in 1024-byte chunks, retrying failures three times.
+        """Upload raw firmware in 10 KiB chunks, retrying failures three times.
 
         The device restarts after the final chunk. Progress is a percentage.
         """
         total = len(firmware)
-        for offset in range(0, max(total, 1), 1024):
-            chunk = firmware[offset:offset + 1024]
+        for offset in range(0, max(total, 1), 10 * 1024):
+            chunk = firmware[offset:offset + 10 * 1024]
             end = offset + len(chunk)
             for attempt in range(4):
                 try:
