@@ -44,8 +44,12 @@ class HttpsCoreClient(CoreClient):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
+    def _new_connection(self) -> HTTPSConnection:
+        return HTTPSConnection(
+            self._addr, timeout=self._command_timeout, context=self._context)
+
     def _request(self, path, method="GET", body=None, params=None,
-                 read_parameter=False):
+                 read_parameter=False, connection: HTTPSConnection | None = None):
         credentials = base64.b64encode(
             f"io4edge:{self._password}".encode()).decode("ascii")
         headers = {"Authorization": f"Basic {credentials}"}
@@ -57,8 +61,9 @@ class HttpsCoreClient(CoreClient):
         path = "/api/v1" + path
         if params is not None:
             path += "?" + urlencode(params)
-        connection = HTTPSConnection(
-            self._addr, timeout=self._command_timeout, context=self._context)
+        close_connection = connection is None
+        if connection is None:
+            connection = self._new_connection()
         try:
             connection.request(method, path, body=body, headers=headers)
             response = connection.getresponse()
@@ -77,7 +82,8 @@ class HttpsCoreClient(CoreClient):
                 raise error_type(f"Unexpected status code {response.status}{detail}")
             return data
         finally:
-            connection.close()
+            if close_connection:
+                connection.close()
 
     def identify_hardware(self) -> HardwareIdentification:
         data = json.loads(self._request("/hardware"))
@@ -106,19 +112,28 @@ class HttpsCoreClient(CoreClient):
         The device restarts after the final chunk. Progress is a percentage.
         """
         total = len(firmware)
-        for offset in range(0, max(total, 1), 10 * 1024):
-            chunk = firmware[offset:offset + 10 * 1024]
-            end = offset + len(chunk)
-            for attempt in range(4):
-                try:
-                    self._request("/firmware", "PUT", chunk,
-                                  {"offset": offset, "last": str(end == total).lower()})
-                    break
-                except (OSError, RuntimeError) as error:
-                    if attempt == 3:
-                        raise RuntimeError("Load firmware chunk command failed") from error
-            if progress_cb:
-                progress_cb(end / total * 100 if total else 100)
+        connection = self._new_connection()
+        try:
+            for offset in range(0, max(total, 1), 10 * 1024):
+                chunk = firmware[offset:offset + 10 * 1024]
+                end = offset + len(chunk)
+                for attempt in range(4):
+                    try:
+                        self._request(
+                            "/firmware", "PUT", chunk,
+                            {"offset": offset, "last": str(end == total).lower()},
+                            connection=connection,
+                        )
+                        break
+                    except (OSError, RuntimeError) as error:
+                        connection.close()
+                        if attempt == 3:
+                            raise RuntimeError("Load firmware chunk command failed") from error
+                        connection = self._new_connection()
+                if progress_cb:
+                    progress_cb(end / total * 100 if total else 100)
+        finally:
+            connection.close()
 
     def restart(self) -> None:
         self._request("/restart", "POST")

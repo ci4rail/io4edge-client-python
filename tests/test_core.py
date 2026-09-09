@@ -98,9 +98,10 @@ class TestHttpsCore(unittest.TestCase):
         self.connection.close.assert_called_once()
 
     def test_firmware_chunks(self):
-        for size in (0, 1, 1024, 1025, 2048):
+        for size in (0, 1, 10 * 1024, 10 * 1024 + 1, 20 * 1024):
             with self.subTest(size=size):
                 self.connection.request.reset_mock()
+                self.connection_class.reset_mock()
                 firmware = bytes(i % 256 for i in range(size))
                 progress = []
                 self.client.load_firmware(firmware, progress.append)
@@ -109,7 +110,8 @@ class TestHttpsCore(unittest.TestCase):
                 for i, call in enumerate(calls):
                     last = str(i == len(calls) - 1).lower()
                     self.assertEqual(call.args, ('PUT',
-                        f'/api/v1/firmware?offset={i * 1024}&last={last}'))
+                        f'/api/v1/firmware?offset={i * 10 * 1024}&last={last}'))
+                self.assertEqual(self.connection_class.call_count, 1)
                 self.assertEqual(progress[-1], 100)
 
     def test_firmware_retry(self):
