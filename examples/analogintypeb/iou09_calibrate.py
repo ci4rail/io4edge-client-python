@@ -5,11 +5,17 @@ import io4edge_client.analogintypeb as ana
 import io4edge_client.functionblock as fb
 import argparse
 import time
+import math
+import statistics
 
 NUM_CHANNELS = 8
 SAMPLE_RATE = 1000  # Hz
 GAIN_SETTING = 1  # x1
 REF_VOLTAGE = 9.994
+NOISE_SAMPLE_RATE = 2000  # Hz
+NOISE_DURATION = 5  # seconds
+NOISE_PEAK_LIMIT = 0.005  # V
+FULL_SCALE_VOLTAGE = 10.0  # V at gain 1
 
 def sample_for_calibration(ana_client, channel: int) -> float:
     config = ana.Pb.ConfigurationSet()
@@ -38,6 +44,56 @@ def sample_for_calibration(ana_client, channel: int) -> float:
     avg = sum(all_samples) / len(all_samples)
     print(f"Channel {channel+1} average sample value is {avg}")
     return avg
+
+
+def verify_noise(ana_client):
+    prompt("Apply 0.0V to all channels and press Enter for the noise check")
+    config = ana.Pb.ConfigurationSet()
+    for channel in range(NUM_CHANNELS):
+        config.channelConfig.add(
+            channel=channel, sample_rate=NOISE_SAMPLE_RATE, gain=GAIN_SETTING
+        )
+    ana_client.upload_configuration(config)
+    ana_client.start_stream(
+        (1 << NUM_CHANNELS) - 1,
+        fb.Pb.StreamControlStart(
+            bucketSamples=400,
+            keepaliveInterval=1000,
+            bufferedSamples=1000,
+            low_latency_mode=False,
+        ),
+    )
+    samples = [[] for _ in range(NUM_CHANNELS)]
+    target_samples = NOISE_SAMPLE_RATE * NOISE_DURATION
+    try:
+        while any(len(values) < target_samples for values in samples):
+            _, stream_data = ana_client.read_stream(timeout=5)
+            for sample in stream_data.samples:
+                for channel, value in enumerate(sample.value, sample.baseChannel):
+                    if not 0 <= channel < NUM_CHANNELS:
+                        raise ValueError(f"Unexpected sample channel {channel}")
+                    if not math.isfinite(value):
+                        raise ValueError(f"Non-finite sample on channel {channel + 1}")
+                    if len(samples[channel]) < target_samples:
+                        samples[channel].append(value * FULL_SCALE_VOLTAGE)
+    finally:
+        ana_client.stop_stream()
+
+    failed_channels = []
+    for channel, values in enumerate(samples):
+        noise = statistics.pstdev(values)
+        peak = max(abs(value) for value in values)
+        print(
+            f"Channel {channel + 1}: noise (standard deviation)={noise * 1000:.3f} mV, "
+            f"peak deviation from 0V={peak * 1000:.3f} mV"
+        )
+        if peak > NOISE_PEAK_LIMIT:
+            failed_channels.append(str(channel + 1))
+    if failed_channels:
+        raise SystemExit(
+            "Noise check failed: peak deviation exceeds 5 mV on channel(s) "
+            + ", ".join(failed_channels)
+        )
 
 
 def offset_param_name(channel: int) -> str:
@@ -127,6 +183,8 @@ def main():
             raise ValueError(
                 f"measured value too far from {REF_VOLTAGE} V"
             )
+
+    verify_noise(ana_client)
 
 
 if __name__ == "__main__":
