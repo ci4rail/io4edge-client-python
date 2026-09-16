@@ -46,3 +46,16 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         """
         self._logger.debug("Uploading configuration to bitbusSniffer")
         self._client.upload_configuration(config)
+
+    @connectable
+    def send_frame(self, bitbus_frame: bytes) -> None:
+        """
+        Send a frame to the bitbus.
+
+        The frame contains the address byte, control byte, and information
+        bytes in the same format as ``Sample.bitbus_frame``.
+        """
+        self._logger.debug("Sending frame to bitbusSniffer")
+        fs_cmd = Pb.FunctionControlSet(bitbus_frame=bitbus_frame)
+        self._client.function_control_set(
+            fs_cmd, Pb.FunctionControlSetResponse())
