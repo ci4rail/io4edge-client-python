@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
+from ._version import version, VERSION
 from pathlib import Path
 import re
 import subprocess
@@ -11,6 +12,7 @@ from .binaryiotypea import Client as BinaryIoTypeAClient
 from .binaryiotypeb import Client as BinaryIoTypeBClient
 from .binaryiotypec import Client as BinaryIoTypeCClient
 from .binaryiotyped import Client as BinaryIoTypeDClient
+from .bitbusslave import Client as BitbusSlaveClient
 from .bitbussniffer import Client as BitbusSnifferClient
 from .canl2 import Client as CanL2Client
 from .colorLED import Client as ColorLEDClient
@@ -28,6 +30,8 @@ from .functionblock import Client as FunctionblockClient
 # This create _version.py file if it doesn't exist,
 # using git describe to generate version information
 # Use when running from source, but will be ignored when installed via pip (since _version.py is in .gitignore)
+
+
 def _version_tuple_from_git() -> tuple:
     package_dir = Path(__file__).resolve().parent
     repo_dir = package_dir.parent
@@ -43,7 +47,8 @@ def _version_tuple_from_git() -> tuple:
     except (OSError, subprocess.CalledProcessError):
         return (0, 0, 0, "dev0")
 
-    match = re.match(r"^v?(\d+)\.(\d+)\.(\d+)-(\d+)-g[0-9a-f]+(?:-dirty)?$", describe)
+    match = re.match(
+        r"^v?(\d+)\.(\d+)\.(\d+)-(\d+)-g[0-9a-f]+(?:-dirty)?$", describe)
     if not match:
         return (0, 0, 0, "dev0")
 
@@ -70,7 +75,6 @@ def _ensure_version_file() -> None:
 
 # Version information
 _ensure_version_file()
-from ._version import version, VERSION
 
 __all__ = [
     # Device-specific clients
@@ -80,6 +84,7 @@ __all__ = [
     "BinaryIoTypeBClient",
     "BinaryIoTypeCClient",
     "BinaryIoTypeDClient",
+    "BitbusSlaveClient",
     "BitbusSnifferClient",
     "CanL2Client",
     "ColorLEDClient",

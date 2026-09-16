@@ -133,3 +133,5 @@ dmypy.json
 *.bin
 
 io4edge_client/_version.py
+
+.devcontainer/devcontainer-lock.json
