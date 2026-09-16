@@ -34,9 +34,6 @@ def main() -> None:
 
     client = bbsniffer.Client(args.addr)
     try:
-        client.upload_configuration(
-            bbsniffer.Pb.ConfigurationSet(prepare_sender=True)
-        )
         client.send_frame(bytes([args.address, args.control]) + information)
         print("frame sent")
     finally:

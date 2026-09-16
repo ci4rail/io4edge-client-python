@@ -16,6 +16,11 @@ def main():
         help="Use stream low latency mode",
         action="store_true",
     )
+    parser.add_argument(
+        "--prepare_sender",
+        help="Use stream prepare sender mode",
+        action="store_true",
+    )
     args = parser.parse_args()
 
     bb_client = bbsniffer.Client(args.addr)
@@ -29,6 +34,7 @@ def main():
             #address_filter=bytes([0xFF] * 32), # this would pass all addresses
             address_filter=bytes(addr_filter),
             min_frame_length=1, # Discard frames with 0 length
+            prepare_sender=args.prepare_sender,
         )
     )
     bb_client.start_stream(
