@@ -64,7 +64,7 @@ def main():
         next_slave = next_master = next_status = time.monotonic()
         while True:
             now = time.monotonic()
-            if now >= next_slave:
+            if now >= next_slave and not slave.get_state().have_pending_tx_msg:
                 slave.set_tx_message(b"slave message")
                 next_slave = now + 0.2
 
@@ -76,7 +76,7 @@ def main():
                 ns = (ns + 1) % 8
                 next_master = now + 0.5
             control = response[1]
-            if control & 1 == 0:  # I frame: acknowledge N(S) in our next request.
+            if control & 1 == 0:  # I frame: advance the expected receive sequence.
                 if (control >> 1) & 7 != nr:
                     raise RuntimeError("Unexpected slave sequence number")
                 nr = (nr + 1) % 8
@@ -85,6 +85,12 @@ def main():
                 raise RuntimeError(f"Unexpected slave response: {response.hex()}")
             if (control >> 5) & 7 != ns:
                 raise RuntimeError("Slave did not acknowledge master message")
+            if control & 1 == 0:
+                # ACK before queuing another message. RNR prevents a new idle
+                # I frame in response, leaving no slave frame awaiting an ACK.
+                response = exchange(sniffer, (nr << 5) | 0x15)
+                if response != bytes((1, (ns << 5) | 0x11)):
+                    raise RuntimeError(f"Unexpected RNR response: {response.hex()}")
 
             # Use the slave API to receive the master's INFORMATION fields.
             while True:

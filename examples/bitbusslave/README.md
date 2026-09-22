@@ -14,7 +14,9 @@ python examples/bitbusslave/loopback.py <slave-endpoint> <sniffer-endpoint>
 The example enables internal loopback at 375 kBaud and uses slave address 1
 with `idle_response=b"\x00"`. It queues a slave message every 0.2 seconds,
 sends a master message every 0.5 seconds, and polls every 50 ms to collect
-slave messages and acknowledge frames. Received INFORMATION fields (including
+slave messages. Each received slave INFORMATION frame is acknowledged immediately
+with RNR, before another slave message can be queued.
+Received INFORMATION fields (including
 idle responses) and slave status (once per second) are printed to stdout.
 Press Ctrl+C to stop and close both clients.
 
