@@ -39,9 +39,24 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
     @connectable
     def upload_configuration(self, config: Pb.ConfigurationSet) -> None:
         """
-        Upload the configuration to the bitbus functionblock.
+        Upload the configuration to the bitbus sniffer functionblock.
+
+        The configuration defines:
+
+        - ``ignore_crc``: retain frames with an invalid CRC when true.
+        - ``baud_62500``: select 62500 baud when true, otherwise 375000 baud.
+        - ``address_filter``: 32-byte bit mask selecting which addresses to
+          receive. Set a bit to receive frames for its corresponding address.
+        - ``min_frame_length``: discard frames shorter than this many bytes.
+        - ``prepare_sender``: enable frame transmission when true; compatible
+          sender hardware is required.
+        - ``loopback_enable``: disable bus activity and internally loop back
+          locally transmitted frames, including bitbus slave frames.
+        - ``full_duplex``: keep the receiver enabled during transmission.
+
         @param config: configuration to upload
-        @raises RuntimeError: if the command fails
+        @raises RuntimeError: if the command fails or the configuration is
+            rejected
         @raises TimeoutError: if the command times out
         """
         self._logger.debug("Uploading configuration to bitbusSniffer")
@@ -52,8 +67,14 @@ class Client(ClientConnectionStream[Pb.StreamControlStart, Pb.StreamData]):
         """
         Send a frame to the bitbus.
 
-        The frame contains the address byte, control byte, and information
-        bytes in the same format as ``Sample.bitbus_frame``.
+        Sender-capable hardware is required and transmission must be enabled
+        with ``ConfigurationSet.prepare_sender``. Byte 0 of ``bitbus_frame``
+        is the address, byte 1 is the control field, and bytes 2 onward are the
+        INFORMATION field, matching ``Sample.bitbus_frame``.
+
+        @param bitbus_frame: complete bitbus frame to transmit
+        @raises RuntimeError: if the command fails or sending is unavailable
+        @raises TimeoutError: if the command times out
         """
         self._logger.debug("Sending frame to bitbusSniffer")
         fs_cmd = Pb.FunctionControlSet(bitbus_frame=bitbus_frame)
