@@ -208,10 +208,11 @@ class Client(ClientConnection):
                     raise RuntimeError("Unhandled response from SSM functionblock")
 
     @connectable
-    def shutdown(self) -> None:
+    def shutdown(self, force: bool = False) -> None:
         """
         Indicate system shutdown.
 
+        @param force: Force system shutdown (e.g. via PWRBTN)
         @raises RuntimeError: if command fails or unhandled response
         @raises TimeoutError: if the command times out
         @raises ConnectionError: if not connected to the device
@@ -219,7 +220,8 @@ class Client(ClientConnection):
         @raises UnknownError: if unknown error occurs while signaling shutdown
         """
         fs_cmd = Pb.FunctionControlSet()
-        fs_cmd.shutdown = True
+        fs_cmd.shutdown.force = force
+
         fs_response = Pb.FunctionControlSetResponse()
         self._client.function_control_set(fs_cmd, fs_response)
 
