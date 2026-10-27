@@ -274,10 +274,11 @@ class Client(ClientConnection):
                     raise RuntimeError("Unhandled response from SSM functionblock")
 
     @connectable
-    def reboot(self) -> None:
+    def reboot(self, force: bool = False) -> None:
         """
         Signals a reboot.
 
+        @param force: Force system reboot (e.g. via PWRBTN)
         @raises RuntimeError: if command fails or unhandled response
         @raises TimeoutError: if the command times out
         @raises ConnectionError: if not connected to the device
@@ -285,7 +286,8 @@ class Client(ClientConnection):
         @raises UnknownError: if unknown error occurs while signaling reboot
         """
         fs_cmd = Pb.FunctionControlSet()
-        fs_cmd.reboot = True
+        fs_cmd.reboot.force = force
+
         fs_response = Pb.FunctionControlSetResponse()
         self._client.function_control_set(fs_cmd, fs_response)
 
